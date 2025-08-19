@@ -1,11 +1,15 @@
 export default async function handler(req, res) {
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -16,24 +20,41 @@ export default async function handler(req, res) {
     }
 
     const decodedUrl = decodeURIComponent(url);
-    console.log('Proxying audio request to:', decodedUrl);
+    
+    // Validate URL to prevent abuse
+    if (!decodedUrl.includes('animethemes.moe')) {
+      return res.status(403).json({ error: 'Only AnimeThemes URLs allowed' });
+    }
 
-    const response = await fetch(decodedUrl);
+    console.log('Proxying:', decodedUrl);
+
+    const response = await fetch(decodedUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'AnimeSongGuesser/1.0'
+      }
+    });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const contentType = response.headers.get('content-type') || 'audio/mpeg';
     
+    // Set proper headers
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Content-Length', response.headers.get('content-length') || '0');
     
+    // Stream the response
     const buffer = await response.arrayBuffer();
-    res.status(200).send(Buffer.from(buffer));
+    return res.status(200).send(Buffer.from(buffer));
     
   } catch (error) {
     console.error('Proxy error:', error);
-    res.status(500).json({ error: 'Failed to proxy audio', details: error.message });
+    return res.status(500).json({ 
+      error: 'Failed to proxy audio', 
+      details: error.message 
+    });
   }
 }
