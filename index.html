@@ -14,7 +14,6 @@
       --white: #ffffff;
       --gradient: linear-gradient(135deg, var(--dark-blue) 0%, var(--black) 100%);
       --gradient-light: linear-gradient(135deg, var(--orange) 0%, #ffb347 100%);
-      --gradient-soft: linear-gradient(135deg, rgba(252, 163, 17, 0.1) 0%, rgba(252, 163, 17, 0.05) 100%);
       --shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
       --shadow-light: 0 4px 20px rgba(252, 163, 17, 0.2);
       --border-radius: 16px;
@@ -59,14 +58,6 @@
         rgba(252, 163, 17, 0.05) 50%, 
         transparent 70%);
       animation: wave 20s linear infinite;
-    }
-
-    .bg-wave:nth-child(2) {
-      animation-delay: -10s;
-      background: linear-gradient(-45deg, 
-        transparent 30%, 
-        rgba(252, 163, 17, 0.03) 50%, 
-        transparent 70%);
     }
 
     @keyframes wave {
@@ -114,7 +105,7 @@
       min-height: 100vh;
     }
 
-    /* Header with enhanced animations */
+    /* Header */
     .header {
       text-align: center;
       padding: 60px 0;
@@ -291,21 +282,6 @@
       box-shadow: var(--shadow-light);
     }
 
-    .menu-item::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 0;
-      background: var(--gradient-soft);
-      transition: height 0.4s ease;
-    }
-
-    .menu-item:hover::after {
-      height: 100%;
-    }
-
     .menu-item:hover {
       transform: translateY(-12px) scale(1.02);
       border-color: var(--orange);
@@ -347,7 +323,7 @@
     /* Enhanced Buttons */
     .btn {
       padding: 18px 40px;
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 600;
       border: none;
       border-radius: 50px;
@@ -363,7 +339,6 @@
       overflow: hidden;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-size: 1rem;
     }
 
     .btn::before {
@@ -461,23 +436,6 @@
       width: 0%;
       transition: width 0.3s ease;
       border-radius: 10px;
-      position: relative;
-    }
-
-    .loading-bar::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 20px;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
-      animation: shimmer 1.5s ease-in-out infinite;
-    }
-
-    @keyframes shimmer {
-      0% { transform: translateX(-20px); }
-      100% { transform: translateX(20px); }
     }
 
     .loading-text {
@@ -606,24 +564,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .play-btn::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .play-btn:hover::before {
-      opacity: 1;
     }
 
     .play-btn:hover {
@@ -687,7 +627,6 @@
       width: 0%;
       transition: width 0.3s ease;
       border-radius: 20px;
-      position: relative;
     }
 
     /* Guess Input */
@@ -833,54 +772,15 @@
       }
     }
 
-    @media (max-width: 480px) {
-      .logo {
-        font-size: 2rem;
-      }
-      
-      .subtitle {
-        font-size: 1.1rem;
-      }
-      
-      .menu-item {
-        padding: 30px 20px;
-      }
-      
-      .loading-progress {
-        width: 250px;
-      }
-    }
-
     /* Utility Classes */
     .hidden {
       display: none !important;
-    }
-
-    .fade-out {
-      opacity: 0;
-      transform: scale(0.9);
-      transition: all 0.5s ease;
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(252, 163, 17, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--orange);
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <!-- Animated Background -->
   <div class="animated-bg">
-    <div class="bg-wave"></div>
     <div class="bg-wave"></div>
     <div class="floating-notes" id="floatingNotes"></div>
   </div>
@@ -1022,34 +922,71 @@
   </div>
 
   <script>
-    // Game State
-    let gameState = {
-      playerName: '',
-      roomCode: '',
-      isHost: false,
-      players: [],
-      currentSong: 1,
-      totalSongs: 10,
-      timer: 5,
-      isPlaying: false,
-      hasExtended: false,
-      gameMode: '',
-      songs: [],
-      preloadedAudio: new Map(),
-      score: 0
-    };
+    // FIXED: Proper game state management with cleanup
+    class GameState {
+      constructor() {
+        this.reset();
+        this.eventListeners = new Map();
+        this.timers = new Set();
+        this.audioController = null;
+      }
 
-    // Initialize
+      reset() {
+        this.playerName = '';
+        this.roomCode = '';
+        this.isHost = false;
+        this.players = [];
+        this.currentSong = 1;
+        this.totalSongs = 10;
+        this.timer = 5;
+        this.isPlaying = false;
+        this.hasExtended = false;
+        this.gameMode = '';
+        this.songs = [];
+        this.preloadedAudio = new Map();
+        this.score = 0;
+        this.currentTimerInterval = null;
+        
+        // Clear all timers
+        this.timers.forEach(timer => clearTimeout(timer));
+        this.timers.clear();
+        
+        // Stop any playing audio
+        if (this.audioController) {
+          this.audioController.pause();
+          this.audioController.currentTime = 0;
+          this.audioController.src = '';
+        }
+      }
+
+      addTimer(timerId) {
+        this.timers.add(timerId);
+      }
+
+      clearTimer(timerId) {
+        clearTimeout(timerId);
+        this.timers.delete(timerId);
+      }
+    }
+
+    // Initialize game state
+    let gameState = new GameState();
+
+    // FIXED: Proper initialization with cleanup
     function init() {
       createFloatingNotes();
       setupEventListeners();
-      console.log('🎵 AnimeSongGuesser initialized!');
+      gameState.audioController = document.getElementById('audioPlayer');
+      console.log('🎵 AnimeSongGuesser initialized properly!');
     }
 
     // Create floating musical notes
     function createFloatingNotes() {
       const container = document.getElementById('floatingNotes');
       const notes = ['♪', '♫', '♬', '♩', '♭', '♮', '♯'];
+      
+      // Clear existing notes first
+      container.innerHTML = '';
       
       for (let i = 0; i < 15; i++) {
         const note = document.createElement('div');
@@ -1062,111 +999,123 @@
       }
     }
 
-    // Event Listeners
+    // FIXED: Event listeners with proper cleanup
     function setupEventListeners() {
-      document.getElementById('playerName').addEventListener('keypress', (e) => {
+      // Clear existing listeners first
+      gameState.eventListeners.forEach((handler, element) => {
+        element.removeEventListener('keypress', handler);
+      });
+      gameState.eventListeners.clear();
+
+      // Add new listeners
+      const nameHandler = (e) => {
         if (e.key === 'Enter') setPlayerName();
-      });
-
-      document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
+      };
+      const roomHandler = (e) => {
         if (e.key === 'Enter') joinRoom();
-      });
-
-      document.getElementById('guessInput').addEventListener('keypress', (e) => {
+      };
+      const guessHandler = (e) => {
         if (e.key === 'Enter') makeGuess();
-      });
+      };
 
-      // Auto-uppercase room code input
+      document.getElementById('playerName').addEventListener('keypress', nameHandler);
+      document.getElementById('roomCodeInput').addEventListener('keypress', roomHandler);
+      document.getElementById('guessInput').addEventListener('keypress', guessHandler);
+
+      // Store for cleanup
+      gameState.eventListeners.set(document.getElementById('playerName'), nameHandler);
+      gameState.eventListeners.set(document.getElementById('roomCodeInput'), roomHandler);
+      gameState.eventListeners.set(document.getElementById('guessInput'), guessHandler);
+
+      // Auto-uppercase room code input with validation
       document.getElementById('roomCodeInput').addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substr(0, 6);
       });
     }
 
-    // FIXED: Use local/bundled audio files - no more CORS!
+    // FIXED: Proper API integration with correct structure
     async function fetchRandomAnimeSongs(count = 10) {
       try {
-        showLoading('Preparing audio files...');
+        showLoading('Connecting to AnimeThemes API...');
         updateLoadingProgress(10);
         
-        // Local audio files that work with CORS (use bundled or known working URLs)
-        const localAudioFiles = [
-          {
-            title: "Cruel Angel's Thesis",
-            anime: "Neon Genesis Evangelion",
-            artist: "Yoko Takahashi",
-            audio: "./audio/song1.mp3", // Local file
-            type: "OP"
-          },
-          {
-            title: "Tank!",
-            anime: "Cowboy Bebop",
-            artist: "The Seatbelts",
-            audio: "./audio/song2.mp3",
-            type: "OP"
-          },
-          {
-            title: "Unravel",
-            anime: "Tokyo Ghoul", 
-            artist: "TK from Ling tosite sigure",
-            audio: "./audio/song3.mp3",
-            type: "OP"
-          },
-          {
-            title: "Gurenge",
-            anime: "Demon Slayer",
-            artist: "LiSA",
-            audio: "./audio/song4.mp3",
-            type: "OP"
-          },
-          {
-            title: "We Are!",
-            anime: "One Piece",
-            artist: "Hiroshi Kitadani",
-            audio: "./audio/song5.mp3",
-            type: "OP"
-          },
-          {
-            title: "Again",
-            anime: "Fullmetal Alchemist: Brotherhood",
-            artist: "YUI",
-            audio: "./audio/song6.mp3",
-            type: "OP"
-          },
-          {
-            title: "Silhouette",
-            anime: "Naruto Shippuden",
-            artist: "KANA-BOON",
-            audio: "./audio/song7.mp3",
-            type: "OP"
-          },
-          {
-            title: "My War",
-            anime: "Attack on Titan",
-            artist: "Shinsei Kamattechan",
-            audio: "./audio/song8.mp3",
-            type: "OP"
-          },
-          {
-            title: "Racing into the Night",
-            anime: "YOASOBI",
-            artist: "YOASOBI",
-            audio: "./audio/song9.mp3",
-            type: "OP"
-          },
-          {
-            title: "Renai Circulation",
-            anime: "Bakemonogatari",
-            artist: "Kana Hanazawa",
-            audio: "./audio/song10.mp3",
-            type: "OP"
-          }
-        ];
-
-        updateLoadingProgress(40);
-        console.log('✅ Using local audio files');
+        console.log('🔍 Fetching songs from AnimeThemes API...');
         
-        // Shuffle and select
-        const shuffled = localAudioFiles.sort(() => Math.random() - 0.5);
+        // FIXED: Correct AnimeThemes API endpoint with proper includes
+        const apiUrl = `https://api.animethemes.moe/animetheme?page[size]=50&include=animethemeentries.videos,song.artists,anime`;
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'AnimeSongGuesser/1.0'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        updateLoadingProgress(30);
+        
+        console.log('✅ API Response received:', data);
+        
+        // FIXED: Process the JSON:API response correctly
+        const validSongs = [];
+        
+        if (data && data.animethemes && Array.isArray(data.animethemes)) {
+          for (const theme of data.animethemes) {
+            try {
+              // Get song info
+              const song = theme.song || {};
+              const anime = theme.anime || {};
+              const artists = song.artists || [];
+              
+              // Get videos from entries
+              const entries = theme.animethemeentries || [];
+              for (const entry of entries) {
+                const videos = entry.videos || [];
+                for (const video of videos) {
+                  if (video && video.link) {
+                    validSongs.push({
+                      title: song.title || `${anime.name} ${theme.type}${theme.sequence || ''}`,
+                      anime: anime.name || 'Unknown Anime',
+                      artist: artists.length > 0 ? 
+                        artists.map(a => a.name).join(', ') : 'Unknown Artist',
+                      // FIXED: Use proxy for CORS-free audio
+                      audio: `/audio-proxy/${encodeURIComponent(video.link)}`,
+                      type: theme.type || 'Theme',
+                      sequence: theme.sequence || 1
+                    });
+                  }
+                }
+              }
+            } catch (themeError) {
+              console.warn('Error processing theme:', themeError);
+              continue;
+            }
+          }
+        }
+        
+        updateLoadingProgress(60);
+        console.log(`📀 Found ${validSongs.length} valid songs from API`);
+        
+        if (validSongs.length === 0) {
+          throw new Error('No valid songs found in API response');
+        }
+        
+        // Shuffle and select random songs
+        const shuffled = validSongs
+          .filter(song => song.audio && song.title && song.anime)
+          .sort(() => Math.random() - 0.5);
+        
         const selectedSongs = shuffled.slice(0, Math.min(count, shuffled.length));
         
         updateLoadingProgress(70);
@@ -1175,26 +1124,34 @@
         return selectedSongs;
         
       } catch (error) {
-        console.error('❌ Error selecting songs:', error);
-        return getDemoSongs();
+        console.error('❌ Error fetching songs from API:', error);
+        console.log('🔄 Using fallback songs...');
+        return getFallbackSongs();
       }
     }
 
-    // Simple demo fallback
-    function getDemoSongs() {
-      updateLoadingText('Using demo mode...');
+    // FIXED: Simple fallback that works
+    function getFallbackSongs() {
+      updateLoadingText('Using demo songs...');
       return [
         {
-          title: "Demo Song",
-          anime: "Demo Anime",
-          artist: "Demo Artist",
+          title: "Demo Song 1",
+          anime: "Demo Anime 1",
+          artist: "Demo Artist 1",
+          audio: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+D2u2g",
+          type: "DEMO"
+        },
+        {
+          title: "Demo Song 2", 
+          anime: "Demo Anime 2",
+          artist: "Demo Artist 2",
           audio: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+D2u2g",
           type: "DEMO"
         }
-      ];
+      ].slice(0, gameState.totalSongs);
     }
 
-    // Enhanced preload audio files
+    // FIXED: Enhanced preload with proper error handling
     async function preloadAudioFiles(songs) {
       showLoading('Preloading audio files...');
       gameState.preloadedAudio.clear();
@@ -1204,48 +1161,59 @@
       const preloadPromises = songs.map(async (song, index) => {
         try {
           updateLoadingProgress(70 + (index / songs.length) * 25);
-          // Never show song title - just the index
+          // FIXED: Never show song title during loading!
           updateLoadingText(`Loading audio ${index + 1}/${songs.length}...`);
           
           return new Promise((resolve) => {
             const audio = new Audio();
-            audio.preload = 'auto';
             
-            const timeout = setTimeout(() => {
-              console.log(`⚠️ Timeout loading audio ${index + 1}, continuing...`);
-              resolve(true); // Continue even if timeout - use direct loading
-            }, 5000);
-            
-            audio.addEventListener('canplaythrough', () => {
+            const cleanup = () => {
+              audio.removeEventListener('canplaythrough', onLoad);
+              audio.removeEventListener('error', onError);
               clearTimeout(timeout);
+            };
+            
+            const onLoad = () => {
+              cleanup();
               gameState.preloadedAudio.set(index, audio);
               console.log(`✅ Preloaded audio ${index + 1}`);
               resolve(true);
-            });
+            };
             
-            audio.addEventListener('error', (e) => {
-              clearTimeout(timeout);
-              console.log(`⚠️ Failed to preload audio ${index + 1}, will load on demand`);
-              resolve(true); // Continue anyway
-            });
+            const onError = (e) => {
+              cleanup();
+              console.warn(`⚠️ Failed to preload audio ${index + 1}:`, e);
+              resolve(false); // Continue anyway
+            };
             
+            const timeout = setTimeout(() => {
+              cleanup();
+              console.warn(`⚠️ Timeout loading audio ${index + 1}`);
+              resolve(false);
+            }, 10000);
+            
+            audio.addEventListener('canplaythrough', onLoad);
+            audio.addEventListener('error', onError);
+            
+            // Set source and load
             audio.src = song.audio;
             audio.load();
           });
           
         } catch (error) {
           console.warn(`⚠️ Error preloading audio ${index + 1}:`, error);
-          return true; // Continue
+          return false;
         }
       });
       
-      await Promise.all(preloadPromises);
+      const results = await Promise.all(preloadPromises);
+      const successCount = results.filter(r => r).length;
       
       updateLoadingProgress(100);
-      updateLoadingText(`Ready! Songs prepared`);
+      updateLoadingText(`Ready! Loaded ${successCount}/${songs.length} songs`);
       
-      console.log(`🎵 Preloading complete`);
-      return true; // Always continue
+      console.log(`🎵 Preloaded ${successCount}/${songs.length} audio files`);
+      return successCount > 0; // Continue if at least one loaded
     }
 
     // Loading screen functions
@@ -1256,34 +1224,42 @@
     }
 
     function hideLoading() {
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         document.getElementById('loadingScreen').classList.remove('active');
       }, 500);
+      gameState.addTimer(timerId);
     }
 
     function updateLoadingProgress(percent) {
-      document.getElementById('loadingBar').style.width = percent + '%';
+      const clampedPercent = Math.max(0, Math.min(100, percent));
+      document.getElementById('loadingBar').style.width = clampedPercent + '%';
     }
 
     function updateLoadingText(text) {
       document.getElementById('loadingText').textContent = text;
     }
 
-    // Set player name
+    // Set player name with validation
     function setPlayerName() {
       const name = document.getElementById('playerName').value.trim();
-      gameState.playerName = name || 'Anonymous';
+      gameState.playerName = name.length > 0 ? name.substring(0, 20) : 'Anonymous';
       console.log(`👤 Player name set: ${gameState.playerName}`);
     }
 
-    // Practice Mode
+    // FIXED: Practice Mode with proper error handling
     async function startPracticeMode() {
-      setPlayerName();
-      gameState.gameMode = 'practice';
-      
       try {
+        setPlayerName();
+        gameState.reset();
+        gameState.gameMode = 'practice';
+        
         const songs = await fetchRandomAnimeSongs(gameState.totalSongs);
-        await preloadAudioFiles(songs);
+        const preloadSuccess = await preloadAudioFiles(songs);
+        
+        if (!preloadSuccess) {
+          throw new Error('Failed to load any audio files');
+        }
+        
         gameState.songs = songs;
         
         hideLoading();
@@ -1293,7 +1269,7 @@
       } catch (error) {
         console.error('❌ Error starting practice mode:', error);
         hideLoading();
-        alert('Failed to start game. Please try again.');
+        alert('Failed to start game: ' + error.message);
       }
     }
 
@@ -1313,7 +1289,7 @@
       console.log(`🏠 Room created: ${gameState.roomCode}`);
     }
 
-    // Generate room code
+    // Generate room code with better randomness
     function generateRoomCode() {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let code = '';
@@ -1331,11 +1307,12 @@
       document.getElementById('roomCodeInput').focus();
     }
 
-    // Join Room
+    // FIXED: Join Room with validation
     function joinRoom() {
       const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
       if (!code || code.length !== 6) {
         alert('Please enter a valid 6-character room code!');
+        document.getElementById('roomCodeInput').focus();
         return;
       }
       
@@ -1359,11 +1336,17 @@
 
     // Show/Hide sections with animation
     function showSection(sectionId) {
-      document.getElementById(sectionId).classList.remove('hidden');
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.remove('hidden');
+      }
     }
 
     function hideSection(sectionId) {
-      document.getElementById(sectionId).classList.add('hidden');
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.add('hidden');
+      }
     }
 
     // Show game room
@@ -1375,9 +1358,11 @@
       updatePlayersList();
     }
 
-    // Update players list
+    // FIXED: Update players list with proper DOM handling
     function updatePlayersList() {
       const container = document.getElementById('playersList');
+      if (!container) return;
+      
       container.innerHTML = '';
       
       if (gameState.players.length === 0) {
@@ -1389,10 +1374,17 @@
         const playerDiv = document.createElement('div');
         playerDiv.className = 'player-item';
         playerDiv.style.animationDelay = (index * 0.1) + 's';
-        playerDiv.innerHTML = `
-          <span class="player-name">${player.name}${player.isHost ? ' 👑' : ''}</span>
-          <span class="player-score">${player.score} pts</span>
-        `;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'player-name';
+        nameSpan.textContent = `${player.name}${player.isHost ? ' 👑' : ''}`;
+        
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'player-score';
+        scoreSpan.textContent = `${player.score} pts`;
+        
+        playerDiv.appendChild(nameSpan);
+        playerDiv.appendChild(scoreSpan);
         container.appendChild(playerDiv);
       });
     }
@@ -1406,7 +1398,12 @@
       
       try {
         const songs = await fetchRandomAnimeSongs(gameState.totalSongs);
-        await preloadAudioFiles(songs);
+        const preloadSuccess = await preloadAudioFiles(songs);
+        
+        if (!preloadSuccess) {
+          throw new Error('Failed to load any audio files');
+        }
+        
         gameState.songs = songs;
         
         hideLoading();
@@ -1416,35 +1413,16 @@
       } catch (error) {
         console.error('❌ Error starting game:', error);
         hideLoading();
-        alert('Failed to start game. Please try again.');
+        alert('Failed to start game: ' + error.message);
       }
     }
 
-    // Leave Room
+    // FIXED: Leave Room with proper cleanup
     function leaveRoom() {
-      resetGameState();
+      gameState.reset();
       document.getElementById('gameRoom').style.display = 'none';
       showSection('mainMenu');
       console.log('🚪 Left room');
-    }
-
-    // Reset game state
-    function resetGameState() {
-      gameState = {
-        playerName: gameState.playerName,
-        roomCode: '',
-        isHost: false,
-        players: [],
-        currentSong: 1,
-        totalSongs: 10,
-        timer: 5,
-        isPlaying: false,
-        hasExtended: false,
-        gameMode: '',
-        songs: [],
-        preloadedAudio: new Map(),
-        score: 0
-      };
     }
 
     // Show game interface
@@ -1458,35 +1436,57 @@
     // Update game players list
     function updateGamePlayersList() {
       const container = document.getElementById('gamePlayersList');
+      if (!container) return;
+      
       container.innerHTML = '';
       
       if (gameState.gameMode === 'practice') {
         const playerDiv = document.createElement('div');
         playerDiv.className = 'player-item';
-        playerDiv.innerHTML = `
-          <span class="player-name">${gameState.playerName}</span>
-          <span class="player-score">${gameState.score} pts</span>
-        `;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'player-name';
+        nameSpan.textContent = gameState.playerName;
+        
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'player-score';
+        scoreSpan.textContent = `${gameState.score} pts`;
+        
+        playerDiv.appendChild(nameSpan);
+        playerDiv.appendChild(scoreSpan);
         container.appendChild(playerDiv);
       } else {
         gameState.players.forEach((player, index) => {
           const playerDiv = document.createElement('div');
           playerDiv.className = 'player-item';
           playerDiv.style.animationDelay = (index * 0.1) + 's';
-          playerDiv.innerHTML = `
-            <span class="player-name">${player.name}</span>
-            <span class="player-score">${player.score} pts</span>
-          `;
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'player-name';
+          nameSpan.textContent = player.name;
+          
+          const scoreSpan = document.createElement('span');
+          scoreSpan.className = 'player-score';  
+          scoreSpan.textContent = `${player.score} pts`;
+          
+          playerDiv.appendChild(nameSpan);
+          playerDiv.appendChild(scoreSpan);
           container.appendChild(playerDiv);
         });
       }
     }
 
-    // Start new song
+    // FIXED: Start new song without revealing info
     function startNewSong() {
       if (gameState.currentSong > gameState.totalSongs) {
         endGame();
         return;
+      }
+      
+      // Clear any existing timer
+      if (gameState.currentTimerInterval) {
+        clearInterval(gameState.currentTimerInterval);
+        gameState.currentTimerInterval = null;
       }
       
       gameState.timer = 5;
@@ -1497,66 +1497,97 @@
       const song = gameState.songs[songIndex];
       const preloadedAudio = gameState.preloadedAudio.get(songIndex);
       
+      // Clear previous audio
+      if (gameState.audioController) {
+        gameState.audioController.pause();
+        gameState.audioController.currentTime = 0;
+        gameState.audioController.src = '';
+      }
+      
       // Use preloaded audio if available
-      if (preloadedAudio) {
-        document.getElementById('audioPlayer').src = preloadedAudio.src;
+      if (preloadedAudio && preloadedAudio.src) {
+        gameState.audioController.src = preloadedAudio.src;
         console.log(`🎵 Using preloaded audio for round ${gameState.currentSong}`);
       } else {
-        document.getElementById('audioPlayer').src = song.audio;
+        gameState.audioController.src = song.audio;
         console.log(`🎵 Loading audio on demand for round ${gameState.currentSong}`);
       }
       
+      // Reset UI
       document.getElementById('timer').textContent = gameState.timer;
       document.getElementById('progressBar').style.width = '0%';
       document.getElementById('playBtn').textContent = '▶️';
       
-      // Never reveal song info until after round
+      // FIXED: Never reveal song info until after round
       addMessage(`🎵 Round ${gameState.currentSong}: Ready to play!`, 'system');
       console.log(`🎵 Starting round ${gameState.currentSong}: ${song.title} from ${song.anime}`);
     }
 
-    // Toggle audio with better error handling
+    // FIXED: Toggle audio with better error handling
     function toggleAudio() {
-      const audio = document.getElementById('audioPlayer');
+      const audio = gameState.audioController;
       const playBtn = document.getElementById('playBtn');
+      
+      if (!audio) {
+        console.error('Audio controller not available');
+        return;
+      }
       
       if (gameState.isPlaying) {
         audio.pause();
         gameState.isPlaying = false;
         playBtn.textContent = '▶️';
+        
+        // Clear timer
+        if (gameState.currentTimerInterval) {
+          clearInterval(gameState.currentTimerInterval);
+          gameState.currentTimerInterval = null;
+        }
+        
         console.log('⏸️ Audio paused');
       } else {
         audio.currentTime = 0;
         
         const playPromise = audio.play();
-        if (playPromise) {
-          playPromise.then(() => {
-            gameState.isPlaying = true;
-            playBtn.textContent = '⏸️';
-            startTimer();
-            console.log('▶️ Audio playing');
-          }).catch(error => {
-            console.error('❌ Error playing audio:', error);
-            addMessage('❌ Audio failed to load. Skipping to next round...', 'system');
-            setTimeout(() => {
-              nextSong();
-            }, 2000);
-          });
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              gameState.isPlaying = true;
+              playBtn.textContent = '⏸️';
+              startTimer();
+              console.log('▶️ Audio playing');
+            })
+            .catch(error => {
+              console.error('❌ Error playing audio:', error);
+              addMessage('❌ Audio failed to load. Skipping to next round...', 'system');
+              
+              const timerId = setTimeout(() => {
+                nextSong();
+              }, 2000);
+              gameState.addTimer(timerId);
+            });
         }
       }
     }
 
-    // Start timer
+    // FIXED: Start timer with proper cleanup
     function startTimer() {
-      const timerInterval = setInterval(() => {
+      // Clear existing timer first
+      if (gameState.currentTimerInterval) {
+        clearInterval(gameState.currentTimerInterval);
+      }
+      
+      gameState.currentTimerInterval = setInterval(() => {
         gameState.timer--;
         document.getElementById('timer').textContent = gameState.timer;
         
-        const progress = ((5 - gameState.timer) / 5) * 100;
+        const progress = Math.max(0, Math.min(100, ((5 - gameState.timer) / 5) * 100));
         document.getElementById('progressBar').style.width = progress + '%';
         
         if (gameState.timer <= 0 || !gameState.isPlaying) {
-          clearInterval(timerInterval);
+          clearInterval(gameState.currentTimerInterval);
+          gameState.currentTimerInterval = null;
+          
           if (gameState.timer <= 0) {
             timeUp();
           }
@@ -1564,9 +1595,9 @@
       }, 1000);
     }
 
-    // Extend time
+    // FIXED: Extend time with proper validation
     function extendTime() {
-      if (gameState.hasExtended || !gameState.isPlaying) {
+      if (gameState.hasExtended || !gameState.isPlaying || gameState.timer <= 0) {
         return;
       }
       
@@ -1581,12 +1612,22 @@
       console.log('⏰ Time extended, -5 points');
     }
 
-    // Make guess
+    // FIXED: Make guess with better validation
     function makeGuess() {
-      const guess = document.getElementById('guessInput').value.trim();
-      if (!guess) return;
+      const guessInput = document.getElementById('guessInput');
+      const guess = guessInput.value.trim();
+      
+      if (!guess || guess.length === 0) {
+        guessInput.focus();
+        return;
+      }
       
       const currentSongData = gameState.songs[gameState.currentSong - 1];
+      if (!currentSongData) {
+        console.error('No current song data available');
+        return;
+      }
+      
       const isCorrect = checkGuess(guess, currentSongData);
       
       if (isCorrect) {
@@ -1594,30 +1635,45 @@
         gameState.score += points;
         
         addMessage(`✅ ${gameState.playerName}: "${guess}" - Correct! (+${points} points)`, 'correct');
+        
+        // Stop audio
         gameState.isPlaying = false;
-        document.getElementById('audioPlayer').pause();
+        gameState.audioController.pause();
+        
+        // Clear timer
+        if (gameState.currentTimerInterval) {
+          clearInterval(gameState.currentTimerInterval);
+          gameState.currentTimerInterval = null;
+        }
         
         updateGamePlayersList();
         
-        setTimeout(() => {
+        const timerId = setTimeout(() => {
           nextSong();
         }, 2000);
+        gameState.addTimer(timerId);
       } else {
         addMessage(`❌ ${gameState.playerName}: "${guess}" - Try again!`, 'wrong');
       }
       
-      document.getElementById('guessInput').value = '';
+      guessInput.value = '';
+      guessInput.focus();
     }
 
-    // Enhanced guess checking with fuzzy matching
+    // FIXED: Enhanced guess checking with proper validation
     function checkGuess(guess, songData) {
+      if (!guess || !songData) return false;
+      
       const targets = [
-        songData.title,
-        songData.anime,
-        songData.artist,
-        // Also check individual artist names if multiple
-        ...(songData.artist.includes(',') ? songData.artist.split(',').map(a => a.trim()) : [])
-      ];
+        songData.title || '',
+        songData.anime || '',
+        songData.artist || ''
+      ].filter(t => t.length > 0);
+      
+      // Also check individual artist names if multiple
+      if (songData.artist && songData.artist.includes(',')) {
+        targets.push(...songData.artist.split(',').map(a => a.trim()).filter(a => a.length > 0));
+      }
       
       const guessLower = guess.toLowerCase().trim();
       
@@ -1627,8 +1683,10 @@
       });
     }
 
-    // Fuzzy string matching with improved algorithm
+    // FIXED: Improved fuzzy matching algorithm
     function fuzzyMatch(str1, str2) {
+      if (!str1 || !str2) return false;
+      
       // Exact match
       if (str1 === str2) return true;
       
@@ -1645,6 +1703,9 @@
       // Levenshtein distance with higher tolerance for Japanese names
       const distance = levenshteinDistance(str1, str2);
       const maxLength = Math.max(str1.length, str2.length);
+      
+      if (maxLength === 0) return false;
+      
       const similarity = 1 - (distance / maxLength);
       
       // More lenient for shorter strings (common for Japanese names)
@@ -1653,8 +1714,10 @@
       return similarity >= threshold;
     }
 
-    // Levenshtein distance calculation
+    // FIXED: Levenshtein distance with input validation
     function levenshteinDistance(str1, str2) {
+      if (!str1 || !str2) return Math.max(str1?.length || 0, str2?.length || 0);
+      
       const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
       
       for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
@@ -1674,18 +1737,27 @@
       return matrix[str2.length][str1.length];
     }
 
-    // Time up with answer reveal
+    // FIXED: Time up with proper answer reveal
     function timeUp() {
       gameState.isPlaying = false;
-      document.getElementById('audioPlayer').pause();
+      gameState.audioController.pause();
+      
+      // Clear timer
+      if (gameState.currentTimerInterval) {
+        clearInterval(gameState.currentTimerInterval);
+        gameState.currentTimerInterval = null;
+      }
       
       const currentSongData = gameState.songs[gameState.currentSong - 1];
-      // NOW show the answer after time is up
-      addMessage(`⏰ Time's up! The answer was "${currentSongData.title}" from ${currentSongData.anime} by ${currentSongData.artist}`, 'system');
+      if (currentSongData) {
+        // NOW show the answer after time is up
+        addMessage(`⏰ Time's up! The answer was "${currentSongData.title}" from ${currentSongData.anime} by ${currentSongData.artist}`, 'system');
+      }
       
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         nextSong();
       }, 3000);
+      gameState.addTimer(timerId);
     }
 
     // Next song
@@ -1695,13 +1767,17 @@
       startNewSong();
     }
 
-    // Add message with enhanced styling
+    // FIXED: Add message with proper DOM handling
     function addMessage(text, type = '') {
       const messagesContainer = document.getElementById('messages');
+      if (!messagesContainer) return;
+      
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${type}`;
       messageDiv.textContent = text;
       messagesContainer.appendChild(messageDiv);
+      
+      // Scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
       
       // Auto-remove old messages to prevent overflow
@@ -1711,15 +1787,28 @@
       }
     }
 
-    // End game
+    // FIXED: End game with proper cleanup
     function endGame() {
-      const finalScore = gameState.score;
-      const accuracy = (finalScore / (gameState.totalSongs * 10)) * 100;
+      // Clear all timers
+      if (gameState.currentTimerInterval) {
+        clearInterval(gameState.currentTimerInterval);
+        gameState.currentTimerInterval = null;
+      }
       
-      addMessage(`🎉 Game Over! Final Score: ${finalScore}/100 points (${accuracy.toFixed(1)}% accuracy)`, 'system');
+      // Stop audio
+      if (gameState.audioController) {
+        gameState.audioController.pause();
+        gameState.audioController.currentTime = 0;
+      }
+      
+      const finalScore = gameState.score;
+      const maxScore = gameState.totalSongs * 10;
+      const accuracy = maxScore > 0 ? (finalScore / maxScore) * 100 : 0;
+      
+      addMessage(`🎉 Game Over! Final Score: ${finalScore}/${maxScore} points (${accuracy.toFixed(1)}% accuracy)`, 'system');
       
       // Show final stats
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         const playAgain = confirm(`🎵 Game Complete!\n\nFinal Score: ${finalScore} points\nAccuracy: ${accuracy.toFixed(1)}%\n\nWould you like to play again?`);
         if (playAgain) {
           location.reload();
@@ -1729,12 +1818,32 @@
           showSection('mainMenu');
         }
       }, 3000);
+      gameState.addTimer(timerId);
       
       console.log(`🏁 Game ended. Final score: ${finalScore} points`);
     }
 
-    // Initialize app
-    window.addEventListener('DOMContentLoaded', init);
+    // FIXED: Initialize app with proper error handling
+    function initializeApp() {
+      try {
+        init();
+        console.log('🎵 App initialized successfully!');
+      } catch (error) {
+        console.error('❌ Error initializing app:', error);
+      }
+    }
+
+    // Initialize when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+
+    // FIXED: Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      gameState.reset();
+    });
   </script>
 </body>
 </html>
