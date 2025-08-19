@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Test</title>
+</head>
+<body>
+  <h1>Debug Test</h1>
+  
+  <button id="testBtn">TEST BUTTON - CLICK ME!</button>
+  <button id="practiceBtn">PRACTICE BUTTON</button>
+  <button id="createRoomBtn">CREATE ROOM</button>
+  
+  <div id="output"></div>
+
+  <script>
+    console.log('🔧 Script loaded');
+    
+    // Test 1: Immediate execution
+    document.getElementById('output').innerHTML = 'Script is running!';
+    console.log('✅ DOM manipulation works');
+
+    // Test 2: Window load event
+    window.addEventListener('load', function() {
+      console.log('🚀 Window loaded event fired');
+      
+      // Test 3: Find elements
+      const testBtn = document.getElementById('testBtn');
+      const practiceBtn = document.getElementById('practiceBtn');
+      const createRoomBtn = document.getElementById('createRoomBtn');
+      
+      console.log('🔍 Elements found:');
+      console.log('testBtn:', testBtn);
+      console.log('practiceBtn:', practiceBtn);
+      console.log('createRoomBtn:', createRoomBtn);
+      
+      // Test 4: Add event listeners
+      if (testBtn) {
+        testBtn.addEventListener('click', function() {
+          console.log('✅ TEST BUTTON CLICKED!');
+          alert('TEST BUTTON WORKS!');
+        });
+        console.log('✅ Test button listener added');
+      } else {
+        console.error('❌ Test button not found!');
+      }
+      
+      if (practiceBtn) {
+        practiceBtn.addEventListener('click', function() {
+          console.log('✅ PRACTICE BUTTON CLICKED!');
+          alert('PRACTICE BUTTON WORKS!');
+        });
+        console.log('✅ Practice button listener added');
+      } else {
+        console.error('❌ Practice button not found!');
+      }
+      
+      if (createRoomBtn) {
+        createRoomBtn.addEventListener('click', function() {
+          console.log('✅ CREATE ROOM BUTTON CLICKED!');
+          alert('CREATE ROOM WORKS!');
+        });
+        console.log('✅ Create room button listener added');
+      } else {
+        console.error('❌ Create room button not found!');
+      }
+      
+      // Test 5: Manual click test
+      console.log('🧪 Testing manual click...');
+      setTimeout(() => {
+        if (testBtn) {
+          testBtn.click();
+        }
+      }, 1000);
+      
+      document.getElementById('output').innerHTML += '<br>✅ Event listeners attached!';
+    });
+    
+    console.log('📋 Script setup complete');
+  </script>
+</body>
+</html>
