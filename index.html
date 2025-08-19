@@ -280,6 +280,9 @@
       position: relative;
       overflow: hidden;
       box-shadow: var(--shadow-light);
+      /* FIXED: Ensure clickable */
+      pointer-events: auto;
+      z-index: 10;
     }
 
     .menu-item:hover {
@@ -295,6 +298,8 @@
       animation: iconFloat 3s ease-in-out infinite;
       position: relative;
       z-index: 1;
+      /* FIXED: Ensure icon doesn't block clicks */
+      pointer-events: none;
     }
 
     @keyframes iconFloat {
@@ -309,6 +314,8 @@
       color: var(--orange);
       position: relative;
       z-index: 1;
+      /* FIXED: Ensure title doesn't block clicks */
+      pointer-events: none;
     }
 
     .menu-description {
@@ -318,6 +325,8 @@
       font-size: 1.05rem;
       position: relative;
       z-index: 1;
+      /* FIXED: Ensure description doesn't block clicks */
+      pointer-events: none;
     }
 
     /* Enhanced Buttons */
@@ -339,6 +348,9 @@
       overflow: hidden;
       text-transform: uppercase;
       letter-spacing: 1px;
+      /* FIXED: Ensure clickable */
+      pointer-events: auto;
+      z-index: 10;
     }
 
     .btn::before {
@@ -352,6 +364,8 @@
       border-radius: 50%;
       transition: all 0.6s ease;
       transform: translate(-50%, -50%);
+      /* FIXED: Don't block clicks */
+      pointer-events: none;
     }
 
     .btn:hover::before {
@@ -564,6 +578,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      /* FIXED: Ensure clickable */
+      pointer-events: auto;
+      z-index: 10;
     }
 
     .play-btn:hover {
@@ -599,6 +616,9 @@
       transition: all 0.3s ease;
       font-family: inherit;
       font-size: 1rem;
+      /* FIXED: Ensure clickable */
+      pointer-events: auto;
+      z-index: 10;
     }
 
     .extend-btn:hover {
@@ -776,6 +796,19 @@
     .hidden {
       display: none !important;
     }
+
+    /* FIXED: Debug styles to ensure visibility */
+    #practiceBtn, #createRoomBtn, #joinRoomBtn {
+      background: rgba(252, 163, 17, 0.1) !important;
+      border: 2px solid var(--orange) !important;
+      pointer-events: auto !important;
+      cursor: pointer !important;
+    }
+
+    #practiceBtn:hover, #createRoomBtn:hover, #joinRoomBtn:hover {
+      background: var(--orange) !important;
+      color: var(--dark-blue) !important;
+    }
   </style>
 </head>
 <body>
@@ -922,83 +955,162 @@
   </div>
 
   <script>
-    // COMPLETE WORKING JAVASCRIPT - NO BUGS
+    // FIXED: Simple approach that works (based on test code)
+    console.log('🎵 Script loading...');
+
+    // Simple global variables
     let gameState = null;
-
-    // Game State Class
-    class GameState {
-      constructor() {
-        this.playerName = '';
-        this.roomCode = '';
-        this.isHost = false;
-        this.players = [];
-        this.currentSong = 1;
-        this.totalSongs = 10;
-        this.timer = 5;
-        this.isPlaying = false;
-        this.hasExtended = false;
-        this.gameMode = '';
-        this.songs = [];
-        this.preloadedAudio = new Map();
-        this.score = 0;
-        this.currentTimerInterval = null;
-        this.timers = new Set();
-        this.audioController = null;
-        console.log('✅ GameState initialized');
-      }
-
-      reset() {
-        this.playerName = this.playerName || '';
-        this.roomCode = '';
-        this.isHost = false;
-        this.players = [];
-        this.currentSong = 1;
-        this.timer = 5;
-        this.isPlaying = false;
-        this.hasExtended = false;
-        this.gameMode = '';
-        this.songs = [];
-        this.preloadedAudio.clear();
-        this.score = 0;
-        
-        this.timers.forEach(timer => clearTimeout(timer));
-        this.timers.clear();
-        
-        if (this.currentTimerInterval) {
-          clearInterval(this.currentTimerInterval);
-          this.currentTimerInterval = null;
-        }
-        
-        if (this.audioController) {
-          this.audioController.pause();
-          this.audioController.currentTime = 0;
-          this.audioController.src = '';
-        }
-      }
-
-      addTimer(timerId) {
-        this.timers.add(timerId);
-      }
+    
+    // Simple Game State
+    function createGameState() {
+      return {
+        playerName: '',
+        roomCode: '',
+        isHost: false,
+        players: [],
+        currentSong: 1,
+        totalSongs: 10,
+        timer: 5,
+        isPlaying: false,
+        hasExtended: false,
+        gameMode: '',
+        songs: [],
+        score: 0,
+        currentTimerInterval: null,
+        audioController: null
+      };
     }
 
-    // Initialize when window loads
-    window.addEventListener('load', function() {
-      console.log('🎵 Window loaded - Initializing game...');
+    // FIXED: Simple window.onload (matches test code)
+    window.onload = function() {
+      console.log('🚀 Window loaded - Starting initialization...');
       
-      // Initialize gameState
-      gameState = new GameState();
-      
-      // Set audio controller
+      // Initialize game state
+      gameState = createGameState();
       gameState.audioController = document.getElementById('audioPlayer');
       
       // Create floating notes
       createFloatingNotes();
       
-      // Setup event listeners
-      setupAllEventListeners();
+      // FIXED: Simple event listener setup (matches test pattern)
+      console.log('🔧 Adding event listeners...');
       
-      console.log('✅ Game initialized successfully!');
-    });
+      // Practice button
+      const practiceBtn = document.getElementById('practiceBtn');
+      if (practiceBtn) {
+        practiceBtn.onclick = function() {
+          console.log('✅ PRACTICE CLICKED!');
+          alert('Practice Mode clicked! Starting game...');
+          startPracticeMode();
+        };
+        console.log('✅ Practice button ready');
+      } else {
+        console.error('❌ Practice button not found!');
+      }
+      
+      // Create room button
+      const createRoomBtn = document.getElementById('createRoomBtn');
+      if (createRoomBtn) {
+        createRoomBtn.onclick = function() {
+          console.log('✅ CREATE ROOM CLICKED!');
+          alert('Create Room clicked!');
+          createRoom();
+        };
+        console.log('✅ Create room button ready');
+      } else {
+        console.error('❌ Create room button not found!');
+      }
+      
+      // Join room button
+      const joinRoomBtn = document.getElementById('joinRoomBtn');
+      if (joinRoomBtn) {
+        joinRoomBtn.onclick = function() {
+          console.log('✅ JOIN ROOM CLICKED!');
+          alert('Join Room clicked!');
+          showJoinRoom();
+        };
+        console.log('✅ Join room button ready');
+      } else {
+        console.error('❌ Join room button not found!');
+      }
+
+      // Other buttons
+      const joinConfirmBtn = document.getElementById('joinRoomConfirmBtn');
+      if (joinConfirmBtn) {
+        joinConfirmBtn.onclick = function() {
+          console.log('✅ JOIN CONFIRM CLICKED!');
+          joinRoom();
+        };
+      }
+
+      const backBtn = document.getElementById('backToMenuBtn');
+      if (backBtn) {
+        backBtn.onclick = function() {
+          console.log('✅ BACK CLICKED!');
+          backToMenu();
+        };
+      }
+
+      const startBtn = document.getElementById('startGameBtn');
+      if (startBtn) {
+        startBtn.onclick = function() {
+          console.log('✅ START GAME CLICKED!');
+          startGame();
+        };
+      }
+
+      const leaveBtn = document.getElementById('leaveRoomBtn');
+      if (leaveBtn) {
+        leaveBtn.onclick = function() {
+          console.log('✅ LEAVE ROOM CLICKED!');
+          leaveRoom();
+        };
+      }
+
+      const playBtn = document.getElementById('playBtn');
+      if (playBtn) {
+        playBtn.onclick = function() {
+          console.log('✅ PLAY CLICKED!');
+          toggleAudio();
+        };
+      }
+
+      const extendBtn = document.getElementById('extendBtn');
+      if (extendBtn) {
+        extendBtn.onclick = function() {
+          console.log('✅ EXTEND CLICKED!');
+          extendTime();
+        };
+      }
+
+      // Input handlers
+      const nameInput = document.getElementById('playerName');
+      if (nameInput) {
+        nameInput.onkeypress = function(e) {
+          if (e.key === 'Enter') setPlayerName();
+        };
+      }
+
+      const roomInput = document.getElementById('roomCodeInput');
+      if (roomInput) {
+        roomInput.onkeypress = function(e) {
+          if (e.key === 'Enter') joinRoom();
+        };
+        roomInput.oninput = function(e) {
+          e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substr(0, 6);
+        };
+      }
+
+      const guessInput = document.getElementById('guessInput');
+      if (guessInput) {
+        guessInput.onkeypress = function(e) {
+          if (e.key === 'Enter') makeGuess();
+        };
+      }
+
+      console.log('✅ All event listeners attached!');
+      console.log('🎯 Game ready! Try clicking buttons.');
+    };
 
     // Create floating notes
     function createFloatingNotes() {
@@ -1019,153 +1131,8 @@
       }
     }
 
-    // Setup all event listeners
-    function setupAllEventListeners() {
-      console.log('🔧 Setting up event listeners...');
-      
-      // Practice button
-      const practiceBtn = document.getElementById('practiceBtn');
-      if (practiceBtn) {
-        practiceBtn.addEventListener('click', function() {
-          console.log('✅ Practice button clicked!');
-          startPracticeMode();
-        });
-        console.log('✅ Practice button listener added');
-      }
-      
-      // Create room button
-      const createRoomBtn = document.getElementById('createRoomBtn');
-      if (createRoomBtn) {
-        createRoomBtn.addEventListener('click', function() {
-          console.log('✅ Create room button clicked!');
-          createRoom();
-        });
-        console.log('✅ Create room button listener added');
-      }
-      
-      // Join room button
-      const joinRoomBtn = document.getElementById('joinRoomBtn');
-      if (joinRoomBtn) {
-        joinRoomBtn.addEventListener('click', function() {
-          console.log('✅ Join room button clicked!');
-          showJoinRoom();
-        });
-        console.log('✅ Join room button listener added');
-      }
-      
-      // Join room confirm button
-      const joinRoomConfirmBtn = document.getElementById('joinRoomConfirmBtn');
-      if (joinRoomConfirmBtn) {
-        joinRoomConfirmBtn.addEventListener('click', function() {
-          console.log('✅ Join room confirm clicked!');
-          joinRoom();
-        });
-      }
-      
-      // Back to menu button
-      const backToMenuBtn = document.getElementById('backToMenuBtn');
-      if (backToMenuBtn) {
-        backToMenuBtn.addEventListener('click', function() {
-          console.log('✅ Back to menu clicked!');
-          backToMenu();
-        });
-      }
-      
-      // Start game button
-      const startGameBtn = document.getElementById('startGameBtn');
-      if (startGameBtn) {
-        startGameBtn.addEventListener('click', function() {
-          console.log('✅ Start game clicked!');
-          startGame();
-        });
-      }
-      
-      // Leave room button
-      const leaveRoomBtn = document.getElementById('leaveRoomBtn');
-      if (leaveRoomBtn) {
-        leaveRoomBtn.addEventListener('click', function() {
-          console.log('✅ Leave room clicked!');
-          leaveRoom();
-        });
-      }
-      
-      // Play button
-      const playBtn = document.getElementById('playBtn');
-      if (playBtn) {
-        playBtn.addEventListener('click', function() {
-          console.log('✅ Play button clicked!');
-          toggleAudio();
-        });
-      }
-      
-      // Extend button
-      const extendBtn = document.getElementById('extendBtn');
-      if (extendBtn) {
-        extendBtn.addEventListener('click', function() {
-          console.log('✅ Extend button clicked!');
-          extendTime();
-        });
-      }
-      
-      // Input event listeners
-      const nameInput = document.getElementById('playerName');
-      if (nameInput) {
-        nameInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') setPlayerName();
-        });
-      }
-      
-      const roomInput = document.getElementById('roomCodeInput');
-      if (roomInput) {
-        roomInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') joinRoom();
-        });
-        roomInput.addEventListener('input', function(e) {
-          e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substr(0, 6);
-        });
-      }
-      
-      const guessInput = document.getElementById('guessInput');
-      if (guessInput) {
-        guessInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') makeGuess();
-        });
-      }
-      
-      console.log('🎯 All event listeners setup complete!');
-    }
-
-    // Fetch songs function
-    async function fetchRandomAnimeSongs(count = 10) {
-      try {
-        if (!gameState) {
-          throw new Error('GameState not initialized');
-        }
-
-        showLoading('Preparing demo songs...');
-        updateLoadingProgress(10);
-        
-        console.log('🔍 Preparing songs...');
-        
-        updateLoadingProgress(50);
-        const demoSongs = getDemoSongs(count);
-        
-        updateLoadingProgress(70);
-        console.log(`🎵 Selected ${demoSongs.length} songs for the game`);
-        
-        return demoSongs;
-        
-      } catch (error) {
-        console.error('❌ Error fetching songs:', error);
-        return getDemoSongs(count);
-      }
-    }
-
-    // Demo songs with count parameter
+    // Demo songs
     function getDemoSongs(count = 10) {
-      updateLoadingText('Using demo songs...');
-      const demoSongs = [];
-      
       const songNames = [
         "Cruel Angel's Thesis", "Tank!", "Unravel", "Gurenge", "We Are!",
         "Again", "Silhouette", "My War", "Racing into the Night", "Renai Circulation"
@@ -1181,8 +1148,9 @@
         "YUI", "KANA-BOON", "Shinsei Kamattechan", "YOASOBI", "Kana Hanazawa"
       ];
       
+      const songs = [];
       for (let i = 0; i < count; i++) {
-        demoSongs.push({
+        songs.push({
           title: songNames[i % songNames.length],
           anime: animeNames[i % animeNames.length],
           artist: artistNames[i % artistNames.length],
@@ -1190,44 +1158,10 @@
           type: "OP"
         });
       }
-      
-      return demoSongs;
+      return songs;
     }
 
-    // Preload audio function
-    async function preloadAudioFiles(songs) {
-      if (!gameState) {
-        console.error('GameState not initialized');
-        return false;
-      }
-
-      showLoading('Preloading audio files...');
-      gameState.preloadedAudio.clear();
-      
-      console.log(`🔄 Preloading ${songs.length} audio files...`);
-      
-      try {
-        for (let i = 0; i < songs.length; i++) {
-          updateLoadingProgress(70 + (i / songs.length) * 25);
-          updateLoadingText(`Loading audio ${i + 1}/${songs.length}...`);
-          
-          // For demo audio, just simulate loading
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        
-        updateLoadingProgress(100);
-        updateLoadingText(`Ready! Songs prepared`);
-        
-        console.log(`🎵 Preloading complete`);
-        return true;
-        
-      } catch (error) {
-        console.error('Error preloading:', error);
-        return true;
-      }
-    }
-
-    // Loading screen functions
+    // Loading functions
     function showLoading(message = 'Loading...') {
       const screen = document.getElementById('loadingScreen');
       if (screen) {
@@ -1238,22 +1172,18 @@
     }
 
     function hideLoading() {
-      if (!gameState) return;
-      
-      const timerId = setTimeout(() => {
+      setTimeout(() => {
         const screen = document.getElementById('loadingScreen');
         if (screen) {
           screen.classList.remove('active');
         }
       }, 500);
-      gameState.addTimer(timerId);
     }
 
     function updateLoadingProgress(percent) {
       const bar = document.getElementById('loadingBar');
       if (bar) {
-        const clampedPercent = Math.max(0, Math.min(100, percent));
-        bar.style.width = clampedPercent + '%';
+        bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
       }
     }
 
@@ -1277,40 +1207,33 @@
     }
 
     // Start practice mode
-    async function startPracticeMode() {
-      try {
-        console.log('🎯 Starting practice mode...');
+    function startPracticeMode() {
+      console.log('🎯 Starting practice mode...');
+      
+      setPlayerName();
+      gameState.gameMode = 'practice';
+      gameState.songs = getDemoSongs(gameState.totalSongs);
+      
+      showLoading('Preparing demo songs...');
+      updateLoadingProgress(50);
+      
+      setTimeout(() => {
+        updateLoadingProgress(100);
+        updateLoadingText('Ready!');
         
-        if (!gameState) {
-          throw new Error('GameState not initialized');
-        }
-
-        setPlayerName();
-        gameState.reset();
-        gameState.gameMode = 'practice';
-        
-        const songs = await fetchRandomAnimeSongs(gameState.totalSongs);
-        const preloadSuccess = await preloadAudioFiles(songs);
-        
-        gameState.songs = songs;
-        
-        hideLoading();
-        showGameInterface();
-        startNewSong();
-        
-      } catch (error) {
-        console.error('❌ Error starting practice mode:', error);
-        hideLoading();
-        alert('Failed to start game: ' + error.message);
-      }
+        setTimeout(() => {
+          hideLoading();
+          showGameInterface();
+          startNewSong();
+        }, 500);
+      }, 1000);
     }
 
     // Create room
     function createRoom() {
       console.log('🏠 Creating room...');
-      if (!gameState) return;
-      
       setPlayerName();
+      
       gameState.roomCode = generateRoomCode();
       gameState.isHost = true;
       gameState.gameMode = 'multiplayer';
@@ -1321,7 +1244,6 @@
       }];
       
       showGameRoom();
-      console.log(`🏠 Room created: ${gameState.roomCode}`);
     }
 
     // Generate room code
@@ -1342,15 +1264,11 @@
       showSection('joinRoomSection');
       
       const input = document.getElementById('roomCodeInput');
-      if (input) {
-        input.focus();
-      }
+      if (input) input.focus();
     }
 
     // Join room
     function joinRoom() {
-      if (!gameState) return;
-      
       const input = document.getElementById('roomCodeInput');
       if (!input) return;
       
@@ -1370,7 +1288,6 @@
       ];
       
       showGameRoom();
-      console.log(`🚪 Joined room: ${gameState.roomCode}`);
     }
 
     // Back to menu
@@ -1382,42 +1299,30 @@
     // Show/Hide sections
     function showSection(sectionId) {
       const section = document.getElementById(sectionId);
-      if (section) {
-        section.classList.remove('hidden');
-      }
+      if (section) section.classList.remove('hidden');
     }
 
     function hideSection(sectionId) {
       const section = document.getElementById(sectionId);
-      if (section) {
-        section.classList.add('hidden');
-      }
+      if (section) section.classList.add('hidden');
     }
 
     // Show game room
     function showGameRoom() {
-      if (!gameState) return;
-      
       hideSection('mainMenu');
       hideSection('joinRoomSection');
       
       const room = document.getElementById('gameRoom');
-      if (room) {
-        room.style.display = 'block';
-      }
+      if (room) room.style.display = 'block';
       
       const codeEl = document.getElementById('roomCode');
-      if (codeEl) {
-        codeEl.textContent = gameState.roomCode;
-      }
+      if (codeEl) codeEl.textContent = gameState.roomCode;
       
       updatePlayersList();
     }
 
     // Update players list
     function updatePlayersList() {
-      if (!gameState) return;
-      
       const container = document.getElementById('playersList');
       if (!container) return;
       
@@ -1431,7 +1336,6 @@
       gameState.players.forEach((player, index) => {
         const playerDiv = document.createElement('div');
         playerDiv.className = 'player-item';
-        playerDiv.style.animationDelay = (index * 0.1) + 's';
         
         const nameSpan = document.createElement('span');
         nameSpan.className = 'player-name';
@@ -1448,74 +1352,47 @@
     }
 
     // Start game
-    async function startGame() {
-      try {
-        if (!gameState) {
-          throw new Error('GameState not initialized');
-        }
-
-        if (gameState.players.length < 1) {
-          alert('Need at least 1 player to start!');
-          return;
-        }
-        
-        const songs = await fetchRandomAnimeSongs(gameState.totalSongs);
-        const preloadSuccess = await preloadAudioFiles(songs);
-        
-        gameState.songs = songs;
-        
+    function startGame() {
+      if (gameState.players.length < 1) {
+        alert('Need at least 1 player to start!');
+        return;
+      }
+      
+      gameState.songs = getDemoSongs(gameState.totalSongs);
+      
+      showLoading('Preparing game...');
+      updateLoadingProgress(100);
+      
+      setTimeout(() => {
         hideLoading();
         showGameInterface();
         startNewSong();
-        
-      } catch (error) {
-        console.error('❌ Error starting game:', error);
-        hideLoading();
-        alert('Failed to start game: ' + error.message);
-      }
+      }, 1000);
     }
 
     // Leave room
     function leaveRoom() {
-      if (!gameState) return;
-      
-      gameState.reset();
-      
       const room = document.getElementById('gameRoom');
-      if (room) {
-        room.style.display = 'none';
-      }
-      
+      if (room) room.style.display = 'none';
       showSection('mainMenu');
-      console.log('🚪 Left room');
     }
 
     // Show game interface
     function showGameInterface() {
-      if (!gameState) return;
-      
       const room = document.getElementById('gameRoom');
-      if (room) {
-        room.style.display = 'none';
-      }
+      if (room) room.style.display = 'none';
       
       const game = document.getElementById('gameInterface');
-      if (game) {
-        game.style.display = 'block';
-      }
+      if (game) game.style.display = 'block';
       
       const songEl = document.getElementById('currentSong');
-      if (songEl) {
-        songEl.textContent = gameState.currentSong;
-      }
+      if (songEl) songEl.textContent = gameState.currentSong;
       
       updateGamePlayersList();
     }
 
     // Update game players list
     function updateGamePlayersList() {
-      if (!gameState) return;
-      
       const container = document.getElementById('gamePlayersList');
       if (!container) return;
       
@@ -1536,37 +1413,16 @@
         playerDiv.appendChild(nameSpan);
         playerDiv.appendChild(scoreSpan);
         container.appendChild(playerDiv);
-      } else {
-        gameState.players.forEach((player, index) => {
-          const playerDiv = document.createElement('div');
-          playerDiv.className = 'player-item';
-          playerDiv.style.animationDelay = (index * 0.1) + 's';
-          
-          const nameSpan = document.createElement('span');
-          nameSpan.className = 'player-name';
-          nameSpan.textContent = player.name;
-          
-          const scoreSpan = document.createElement('span');
-          scoreSpan.className = 'player-score';  
-          scoreSpan.textContent = `${player.score} pts`;
-          
-          playerDiv.appendChild(nameSpan);
-          playerDiv.appendChild(scoreSpan);
-          container.appendChild(playerDiv);
-        });
       }
     }
 
     // Start new song
     function startNewSong() {
-      if (!gameState) return;
-      
       if (gameState.currentSong > gameState.totalSongs) {
         endGame();
         return;
       }
       
-      // Clear any existing timer
       if (gameState.currentTimerInterval) {
         clearInterval(gameState.currentTimerInterval);
         gameState.currentTimerInterval = null;
@@ -1579,14 +1435,12 @@
       const songIndex = gameState.currentSong - 1;
       const song = gameState.songs[songIndex];
       
-      // Clear previous audio
       if (gameState.audioController) {
         gameState.audioController.pause();
         gameState.audioController.currentTime = 0;
         gameState.audioController.src = song.audio;
       }
       
-      // Reset UI
       const timerEl = document.getElementById('timer');
       if (timerEl) timerEl.textContent = gameState.timer;
       
@@ -1596,14 +1450,13 @@
       const playBtn = document.getElementById('playBtn');
       if (playBtn) playBtn.textContent = '▶️';
       
-      // Never reveal song info until after round
       addMessage(`🎵 Round ${gameState.currentSong}: Ready to play!`, 'system');
       console.log(`🎵 Starting round ${gameState.currentSong}: ${song.title} from ${song.anime}`);
     }
 
     // Toggle audio
     function toggleAudio() {
-      if (!gameState || !gameState.audioController) return;
+      if (!gameState.audioController) return;
       
       const audio = gameState.audioController;
       const playBtn = document.getElementById('playBtn');
@@ -1614,43 +1467,26 @@
         gameState.isPlaying = false;
         playBtn.textContent = '▶️';
         
-        // Clear timer
         if (gameState.currentTimerInterval) {
           clearInterval(gameState.currentTimerInterval);
           gameState.currentTimerInterval = null;
         }
-        
-        console.log('⏸️ Audio paused');
       } else {
         audio.currentTime = 0;
-        
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              gameState.isPlaying = true;
-              playBtn.textContent = '⏸️';
-              startTimer();
-              console.log('▶️ Audio playing');
-            })
-            .catch(error => {
-              console.error('❌ Error playing audio:', error);
-              addMessage('❌ Audio failed to load. Skipping to next round...', 'system');
-              
-              const timerId = setTimeout(() => {
-                nextSong();
-              }, 2000);
-              gameState.addTimer(timerId);
-            });
-        }
+        audio.play().then(() => {
+          gameState.isPlaying = true;
+          playBtn.textContent = '⏸️';
+          startTimer();
+        }).catch(error => {
+          console.error('Audio error:', error);
+          addMessage('❌ Audio failed. Skipping...', 'system');
+          setTimeout(nextSong, 2000);
+        });
       }
     }
 
     // Start timer
     function startTimer() {
-      if (!gameState) return;
-      
-      // Clear existing timer first
       if (gameState.currentTimerInterval) {
         clearInterval(gameState.currentTimerInterval);
       }
@@ -1665,53 +1501,39 @@
         const progressEl = document.getElementById('progressBar');
         if (progressEl) progressEl.style.width = progress + '%';
         
-        if (gameState.timer <= 0 || !gameState.isPlaying) {
+        if (gameState.timer <= 0) {
           clearInterval(gameState.currentTimerInterval);
           gameState.currentTimerInterval = null;
-          
-          if (gameState.timer <= 0) {
-            timeUp();
-          }
+          timeUp();
         }
       }, 1000);
     }
 
     // Extend time
     function extendTime() {
-      if (!gameState || gameState.hasExtended || !gameState.isPlaying || gameState.timer <= 0) {
-        return;
-      }
+      if (gameState.hasExtended || !gameState.isPlaying) return;
       
       gameState.timer += 5;
       gameState.hasExtended = true;
-      
-      // Deduct 5 points
       gameState.score = Math.max(0, gameState.score - 5);
-      updateGamePlayersList();
       
+      updateGamePlayersList();
       addMessage('⏰ Time extended! (-5 points)', 'system');
-      console.log('⏰ Time extended, -5 points');
     }
 
     // Make guess
     function makeGuess() {
-      if (!gameState) return;
-      
       const guessInput = document.getElementById('guessInput');
       if (!guessInput) return;
       
       const guess = guessInput.value.trim();
-      
-      if (!guess || guess.length === 0) {
+      if (!guess) {
         guessInput.focus();
         return;
       }
       
       const currentSongData = gameState.songs[gameState.currentSong - 1];
-      if (!currentSongData) {
-        console.error('No current song data available');
-        return;
-      }
+      if (!currentSongData) return;
       
       const isCorrect = checkGuess(guess, currentSongData);
       
@@ -1721,22 +1543,16 @@
         
         addMessage(`✅ ${gameState.playerName}: "${guess}" - Correct! (+${points} points)`, 'correct');
         
-        // Stop audio
         gameState.isPlaying = false;
         gameState.audioController.pause();
         
-        // Clear timer
         if (gameState.currentTimerInterval) {
           clearInterval(gameState.currentTimerInterval);
           gameState.currentTimerInterval = null;
         }
         
         updateGamePlayersList();
-        
-        const timerId = setTimeout(() => {
-          nextSong();
-        }, 2000);
-        gameState.addTimer(timerId);
+        setTimeout(nextSong, 2000);
       } else {
         addMessage(`❌ ${gameState.playerName}: "${guess}" - Try again!`, 'wrong');
       }
@@ -1745,7 +1561,7 @@
       guessInput.focus();
     }
 
-    // Check guess with fuzzy matching
+    // Check guess
     function checkGuess(guess, songData) {
       if (!guess || !songData) return false;
       
@@ -1765,32 +1581,19 @@
 
     // Time up
     function timeUp() {
-      if (!gameState) return;
-      
       gameState.isPlaying = false;
       gameState.audioController.pause();
       
-      // Clear timer
-      if (gameState.currentTimerInterval) {
-        clearInterval(gameState.currentTimerInterval);
-        gameState.currentTimerInterval = null;
-      }
-      
       const currentSongData = gameState.songs[gameState.currentSong - 1];
       if (currentSongData) {
-        addMessage(`⏰ Time's up! The answer was "${currentSongData.title}" from ${currentSongData.anime} by ${currentSongData.artist}`, 'system');
+        addMessage(`⏰ Time's up! Answer: "${currentSongData.title}" from ${currentSongData.anime}`, 'system');
       }
       
-      const timerId = setTimeout(() => {
-        nextSong();
-      }, 3000);
-      gameState.addTimer(timerId);
+      setTimeout(nextSong, 3000);
     }
 
     // Next song
     function nextSong() {
-      if (!gameState) return;
-      
       gameState.currentSong++;
       const songEl = document.getElementById('currentSong');
       if (songEl) songEl.textContent = gameState.currentSong;
@@ -1808,10 +1611,8 @@
       messageDiv.textContent = text;
       messagesContainer.appendChild(messageDiv);
       
-      // Scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
       
-      // Auto-remove old messages
       const messages = messagesContainer.children;
       if (messages.length > 20) {
         messages[0].remove();
@@ -1820,15 +1621,11 @@
 
     // End game
     function endGame() {
-      if (!gameState) return;
-      
-      // Clear all timers
       if (gameState.currentTimerInterval) {
         clearInterval(gameState.currentTimerInterval);
         gameState.currentTimerInterval = null;
       }
       
-      // Stop audio
       if (gameState.audioController) {
         gameState.audioController.pause();
         gameState.audioController.currentTime = 0;
@@ -1838,31 +1635,20 @@
       const maxScore = gameState.totalSongs * 10;
       const accuracy = maxScore > 0 ? (finalScore / maxScore) * 100 : 0;
       
-      addMessage(`🎉 Game Over! Final Score: ${finalScore}/${maxScore} points (${accuracy.toFixed(1)}% accuracy)`, 'system');
+      addMessage(`🎉 Game Over! Score: ${finalScore}/${maxScore} (${accuracy.toFixed(1)}%)`, 'system');
       
-      // Show final stats
-      const timerId = setTimeout(() => {
-        const playAgain = confirm(`🎵 Game Complete!\n\nFinal Score: ${finalScore} points\nAccuracy: ${accuracy.toFixed(1)}%\n\nWould you like to play again?`);
-        if (playAgain) {
+      setTimeout(() => {
+        if (confirm(`Game Complete!\nScore: ${finalScore} points\nPlay again?`)) {
           location.reload();
         } else {
-          backToMenu();
           const game = document.getElementById('gameInterface');
           if (game) game.style.display = 'none';
           showSection('mainMenu');
         }
       }, 3000);
-      gameState.addTimer(timerId);
-      
-      console.log(`🏁 Game ended. Final score: ${finalScore} points`);
     }
 
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      if (gameState) {
-        gameState.reset();
-      }
-    });
+    console.log('📋 Script ready!');
   </script>
 </body>
 </html>
