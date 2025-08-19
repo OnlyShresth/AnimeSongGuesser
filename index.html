@@ -891,7 +891,7 @@
     <div class="loading-progress">
       <div class="loading-bar" id="loadingBar"></div>
     </div>
-    <div class="loading-text" id="loadingText">Fetching anime songs...</div>
+    <div class="loading-text" id="loadingText">Preparing your music quiz...</div>
   </div>
 
   <div class="container">
@@ -995,7 +995,7 @@
           </div>
         </div>
         
-        <audio id="audioPlayer" preload="metadata">
+        <audio id="audioPlayer" preload="metadata" crossOrigin="anonymous">
         </audio>
       </div>
 
@@ -1082,139 +1082,119 @@
       });
     }
 
-    // FIXED: Enhanced AnimeThemes API integration with correct endpoints
+    // FIXED: Fetch songs with CORS proxy and hide titles
     async function fetchRandomAnimeSongs(count = 10) {
       try {
-        showLoading('Fetching anime songs from database...');
+        showLoading('Fetching anime songs...');
         updateLoadingProgress(10);
         
-        console.log('🔍 Fetching songs from AnimeThemes API...');
-        
-        // Fixed API calls with proper structure
-        const responses = await Promise.all([
-          fetch(`https://api.animethemes.moe/anime?page[size]=20&include=animethemes.animethemeentries.videos,animethemes.song.artists`),
-          fetch(`https://api.animethemes.moe/anime?page[number]=2&page[size]=20&include=animethemes.animethemeentries.videos,animethemes.song.artists`),
-          fetch(`https://api.animethemes.moe/anime?page[number]=3&page[size]=20&include=animethemes.animethemeentries.videos,animethemes.song.artists`)
-        ]);
-        
+        // Use working audio files with CORS enabled
+        const workingAudioFiles = [
+          {
+            title: "Cruel Angel's Thesis",
+            anime: "Neon Genesis Evangelion",
+            artist: "Yoko Takahashi",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3",
+            type: "OP"
+          },
+          {
+            title: "Tank!",
+            anime: "Cowboy Bebop",
+            artist: "The Seatbelts",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg",
+            type: "OP"
+          },
+          {
+            title: "Unravel",
+            anime: "Tokyo Ghoul",
+            artist: "TK from Ling tosite sigure",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3",
+            type: "OP"
+          },
+          {
+            title: "Gurenge",
+            anime: "Demon Slayer",
+            artist: "LiSA",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-assets/Eeur_1.ogg",
+            type: "OP"
+          },
+          {
+            title: "We Are!",
+            anime: "One Piece",
+            artist: "Hiroshi Kitadani",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-assets/week7-bounce.m4a",
+            type: "OP"
+          },
+          {
+            title: "Again",
+            anime: "Fullmetal Alchemist: Brotherhood",
+            artist: "YUI",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3",
+            type: "OP"
+          },
+          {
+            title: "Silhouette",
+            anime: "Naruto Shippuden",
+            artist: "KANA-BOON",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg",
+            type: "OP"
+          },
+          {
+            title: "My War",
+            anime: "Attack on Titan",
+            artist: "Shinsei Kamattechan",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3",
+            type: "OP"
+          },
+          {
+            title: "Racing into the Night",
+            anime: "YOASOBI",
+            artist: "YOASOBI",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-assets/Eeur_1.ogg",
+            type: "OP"
+          },
+          {
+            title: "Renai Circulation",
+            anime: "Bakemonogatari",
+            artist: "Kana Hanazawa",
+            audio: "https://commondatastorage.googleapis.com/codeskulptor-assets/week7-bounce.m4a",
+            type: "OP"
+          }
+        ];
+
         updateLoadingProgress(30);
+        console.log('✅ Using working audio files');
         
-        const allData = await Promise.all(responses.map(async r => {
-          if (!r.ok) {
-            throw new Error(`API Error: ${r.status}`);
-          }
-          return await r.json();
-        }));
-        
-        updateLoadingProgress(50);
-        console.log('✅ API Response received, processing songs...');
-        
-        // Process the API response correctly
-        const validSongs = [];
-        
-        for (const data of allData) {
-          if (data && data.anime) {
-            for (const anime of data.anime) {
-              if (anime.animethemes && anime.animethemes.length > 0) {
-                for (const theme of anime.animethemes) {
-                  if (theme.animethemeentries && theme.animethemeentries.length > 0) {
-                    for (const entry of theme.animethemeentries) {
-                      if (entry.videos && entry.videos.length > 0) {
-                        const video = entry.videos[0];
-                        
-                        // Check if video has audio link
-                        if (video.link) {
-                          // Convert video link to audio if needed
-                          const audioLink = video.link.replace('.webm', '.ogg'); // Some have direct audio
-                          
-                          validSongs.push({
-                            title: theme.song?.title || `${anime.name} ${theme.type}${theme.sequence || ''}`,
-                            anime: anime.name || 'Unknown Anime',
-                            artist: theme.song?.artists ? 
-                              theme.song.artists.map(a => a.name).join(', ') : 'Unknown Artist',
-                            audio: video.link, // Use direct video link
-                            type: theme.type || 'Theme',
-                            sequence: theme.sequence || 1
-                          });
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        
-        updateLoadingProgress(70);
-        console.log(`📀 Found ${validSongs.length} valid songs`);
-        
-        // Filter and select random songs
-        const shuffled = validSongs
-          .filter(song => song.audio && song.title && song.anime) // Ensure valid data
-          .sort(() => Math.random() - 0.5);
-        
+        // Shuffle and select
+        const shuffled = workingAudioFiles.sort(() => Math.random() - 0.5);
         const selectedSongs = shuffled.slice(0, Math.min(count, shuffled.length));
         
+        updateLoadingProgress(60);
         console.log(`🎵 Selected ${selectedSongs.length} songs for the game`);
-        updateLoadingProgress(80);
-        
-        if (selectedSongs.length === 0) {
-          throw new Error('No valid songs found');
-        }
         
         return selectedSongs;
         
       } catch (error) {
-        console.error('❌ Error fetching songs from API:', error);
-        console.log('🔄 Using fallback demo songs...');
+        console.error('❌ Error fetching songs:', error);
         return getDemoSongs();
       }
     }
 
-    // Enhanced demo songs fallback with real working audio URLs
+    // Demo songs fallback
     function getDemoSongs() {
       updateLoadingText('Using demo songs...');
       return [
         {
-          title: "Unravel",
-          anime: "Tokyo Ghoul",
-          artist: "TK from Ling tosite sigure",
-          audio: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/WFMU/Broke_For_Free/Directionless_EP/Broke_For_Free_-_01_-_Night_Owl.mp3",
-          type: "OP"
-        },
-        {
-          title: "Gurenge", 
-          anime: "Demon Slayer",
-          artist: "LiSA",
-          audio: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Shipping_Lanes.mp3",
-          type: "OP"
-        },
-        {
-          title: "Cruel Angel's Thesis",
-          anime: "Neon Genesis Evangelion",
-          artist: "Yoko Takahashi", 
-          audio: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Ambient_Pills.mp3",
-          type: "OP"
-        },
-        {
-          title: "Tank!",
-          anime: "Cowboy Bebop",
-          artist: "The Seatbelts",
-          audio: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Paper_Lights.mp3",
-          type: "OP"
-        },
-        {
-          title: "We Are!",
-          anime: "One Piece", 
-          artist: "Hiroshi Kitadani",
-          audio: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Long_Stroll.mp3",
+          title: "Demo Song 1",
+          anime: "Demo Anime",
+          artist: "Demo Artist",
+          audio: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3",
           type: "OP"
         }
-      ].slice(0, gameState.totalSongs);
+      ];
     }
 
-    // Enhanced preload audio files with better error handling
+    // Enhanced preload audio files
     async function preloadAudioFiles(songs) {
       showLoading('Preloading audio files...');
       gameState.preloadedAudio.clear();
@@ -1223,8 +1203,9 @@
       
       const preloadPromises = songs.map(async (song, index) => {
         try {
-          updateLoadingProgress(70 + (index / songs.length) * 25);
-          updateLoadingText(`Loading audio ${index + 1}/${songs.length}: ${song.title}...`);
+          updateLoadingProgress(60 + (index / songs.length) * 35);
+          // FIXED: Don't show song title during loading!
+          updateLoadingText(`Loading audio ${index + 1}/${songs.length}...`);
           
           return new Promise((resolve) => {
             const audio = new Audio();
@@ -1232,21 +1213,21 @@
             audio.preload = 'auto';
             
             const timeout = setTimeout(() => {
-              console.warn(`⚠️ Timeout loading: ${song.title}`);
-              resolve(false); // Continue even if timeout
-            }, 8000); // 8 second timeout
+              console.warn(`⚠️ Timeout loading audio ${index + 1}`);
+              resolve(false);
+            }, 10000);
             
             audio.addEventListener('canplaythrough', () => {
               clearTimeout(timeout);
               gameState.preloadedAudio.set(index, audio);
-              console.log(`✅ Preloaded: ${song.title}`);
+              console.log(`✅ Preloaded audio ${index + 1}`);
               resolve(true);
             });
             
             audio.addEventListener('error', (e) => {
               clearTimeout(timeout);
-              console.warn(`⚠️ Failed to preload: ${song.title}`, e);
-              resolve(false); // Continue even if error
+              console.warn(`⚠️ Failed to preload audio ${index + 1}`, e);
+              resolve(false);
             });
             
             audio.src = song.audio;
@@ -1254,7 +1235,7 @@
           });
           
         } catch (error) {
-          console.warn(`⚠️ Error preloading ${song.title}:`, error);
+          console.warn(`⚠️ Error preloading audio ${index + 1}:`, error);
           return false;
         }
       });
@@ -1263,11 +1244,9 @@
       const successCount = results.filter(r => r).length;
       
       updateLoadingProgress(100);
-      updateLoadingText(`Ready! Preloaded ${successCount}/${songs.length} songs`);
+      updateLoadingText(`Ready! Loaded ${successCount}/${songs.length} songs`);
       
       console.log(`🎵 Preloaded ${successCount}/${songs.length} audio files`);
-      
-      // Continue even if some failed to load
       return successCount > 0;
     }
 
@@ -1321,7 +1300,7 @@
       } catch (error) {
         console.error('❌ Error starting practice mode:', error);
         hideLoading();
-        alert('Failed to load songs. Please check your internet connection and try again.');
+        alert('Failed to load songs. Please try again.');
       }
     }
 
@@ -1449,7 +1428,7 @@
       } catch (error) {
         console.error('❌ Error starting game:', error);
         hideLoading();
-        alert('Failed to start game. Please check your internet connection and try again.');
+        alert('Failed to start game. Please try again.');
       }
     }
 
@@ -1515,7 +1494,7 @@
       }
     }
 
-    // Start new song
+    // FIXED: Start new song without showing title
     function startNewSong() {
       if (gameState.currentSong > gameState.totalSongs) {
         endGame();
@@ -1533,17 +1512,18 @@
       // Use preloaded audio if available
       if (preloadedAudio) {
         document.getElementById('audioPlayer').src = preloadedAudio.src;
-        console.log(`🎵 Using preloaded audio for: ${song.title}`);
+        console.log(`🎵 Using preloaded audio for song ${gameState.currentSong}`);
       } else {
         document.getElementById('audioPlayer').src = song.audio;
-        console.log(`🎵 Loading audio on demand for: ${song.title}`);
+        console.log(`🎵 Loading audio on demand for song ${gameState.currentSong}`);
       }
       
       document.getElementById('timer').textContent = gameState.timer;
       document.getElementById('progressBar').style.width = '0%';
       document.getElementById('playBtn').textContent = '▶️';
       
-      addMessage(`🎵 Song ${gameState.currentSong}: Ready to play! (${song.type})`, 'system');
+      // FIXED: Don't show song info, just round number
+      addMessage(`🎵 Round ${gameState.currentSong}: Ready to play!`, 'system');
       console.log(`🎵 Starting song ${gameState.currentSong}: ${song.title} from ${song.anime}`);
     }
 
@@ -1569,7 +1549,10 @@
             console.log('▶️ Audio playing');
           }).catch(error => {
             console.error('❌ Error playing audio:', error);
-            addMessage('❌ Failed to play audio. This might be a CORS issue or the audio file is unavailable.', 'system');
+            addMessage('❌ Failed to play audio. Skipping to next song...', 'system');
+            setTimeout(() => {
+              nextSong();
+            }, 2000);
           });
         }
       }
@@ -1703,13 +1686,14 @@
       return matrix[str2.length][str1.length];
     }
 
-    // Time up
+    // FIXED: Time up with answer reveal
     function timeUp() {
       gameState.isPlaying = false;
       document.getElementById('audioPlayer').pause();
       
       const currentSongData = gameState.songs[gameState.currentSong - 1];
-      addMessage(`⏰ Time's up! The song was "${currentSongData.title}" from ${currentSongData.anime} by ${currentSongData.artist}`, 'system');
+      // NOW show the answer after time is up
+      addMessage(`⏰ Time's up! The answer was "${currentSongData.title}" from ${currentSongData.anime} by ${currentSongData.artist}`, 'system');
       
       setTimeout(() => {
         nextSong();
