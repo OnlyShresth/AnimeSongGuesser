@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnimeSongGuesser - Multiplayer Anime Music Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000000;
+      --dark-blue: #14213d;
+      --orange: #fca311;
+      --light-gray: #e5e5e5;
+      --white: #ffffff;
+      --gradient: linear-gradient(135deg, var(--dark-blue) 0%, var(--black) 100%);
+      --gradient-light: linear-gradient(135deg, var(--orange) 0%, #ffb347 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(252, 163, 17, 0.1) 0%, rgba(252, 163, 17, 0.05) 100%);
+      --shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      --shadow-light: 0 4px 20px rgba(252, 163, 17, 0.2);
+      --border-radius: 16px;
+      --border-radius-large: 24px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--gradient);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    /* Animated Background */
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .bg-wave {
+      position: absolute;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(252, 163, 17, 0.05) 50%, 
+        transparent 70%);
+      animation: wave 20s linear infinite;
+    }
+
+    .bg-wave:nth-child(2) {
+      animation-delay: -10s;
+      background: linear-gradient(-45deg, 
+        transparent 30%, 
+        rgba(252, 163, 17, 0.03) 50%, 
+        transparent 70%);
+    }
+
+    @keyframes wave {
+      0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+      100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+    }
+
+    .floating-notes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .music-note {
+      position: absolute;
+      color: var(--orange);
+      font-size: 20px;
+      opacity: 0;
+      animation: floatNote 15s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes floatNote {
+      0%, 100% {
+        opacity: 0;
+        transform: translateY(100vh) scale(0.5) rotate(0deg);
+      }
+      10% {
+        opacity: 0.7;
+        transform: translateY(90vh) scale(1) rotate(45deg);
+      }
+      90% {
+        opacity: 0.7;
+        transform: translateY(10vh) scale(0.8) rotate(315deg);
+      }
+    }
+
+    /* Main Container */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* Header with enhanced animations */
+    .header {
+      text-align: center;
+      padding: 60px 0;
+      animation: headerSlideIn 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    @keyframes headerSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-80px) scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .logo {
+      font-size: 4rem;
+      font-weight: 900;
+      background: var(--gradient-light);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 15px;
+      text-shadow: 0 0 50px rgba(252, 163, 17, 0.3);
+      animation: logoPulse 3s ease-in-out infinite alternate;
+      letter-spacing: -2px;
+    }
+
+    @keyframes logoPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.02); }
+    }
+
+    .subtitle {
+      font-size: 1.4rem;
+      color: var(--light-gray);
+      opacity: 0.9;
+      font-weight: 300;
+      animation: subtitleFade 1.5s ease-out 0.3s both;
+    }
+
+    @keyframes subtitleFade {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 0.9;
+        transform: translateY(0);
+      }
+    }
+
+    /* Enhanced Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(252, 163, 17, 0.2);
+      border-radius: var(--border-radius-large);
+      padding: 40px;
+      margin: 30px 0;
+      box-shadow: var(--shadow);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(252, 163, 17, 0.1), transparent);
+      transition: left 0.8s ease;
+    }
+
+    .card:hover::before {
+      left: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: var(--orange);
+      box-shadow: 0 20px 60px rgba(252, 163, 17, 0.15);
+    }
+
+    /* Name Input Section */
+    .name-section {
+      animation: cardSlideUp 1s ease-out 0.5s both;
+      text-align: center;
+    }
+
+    @keyframes cardSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(60px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 20px;
+    }
+
+    .name-input {
+      width: 100%;
+      max-width: 450px;
+      padding: 20px 30px;
+      font-size: 1.2rem;
+      border: 2px solid rgba(252, 163, 17, 0.3);
+      border-radius: 50px;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--white);
+      text-align: center;
+      margin: 25px 0;
+      transition: all 0.4s ease;
+      font-family: inherit;
+      font-weight: 500;
+    }
+
+    .name-input:focus {
+      outline: none;
+      border-color: var(--orange);
+      background: rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 30px rgba(252, 163, 17, 0.2);
+      transform: scale(1.02);
+    }
+
+    .name-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 300;
+    }
+
+    /* Enhanced Menu Grid */
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      margin: 50px 0;
+      animation: menuSlideUp 1s ease-out 0.7s both;
+    }
+
+    @keyframes menuSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(80px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .menu-item {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(15px);
+      border: 2px solid rgba(252, 163, 17, 0.2);
+      border-radius: var(--border-radius-large);
+      padding: 50px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-light);
+    }
+
+    .menu-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0;
+      background: var(--gradient-soft);
+      transition: height 0.4s ease;
+    }
+
+    .menu-item:hover::after {
+      height: 100%;
+    }
+
+    .menu-item:hover {
+      transform: translateY(-12px) scale(1.02);
+      border-color: var(--orange);
+      box-shadow: 0 25px 80px rgba(252, 163, 17, 0.25);
+    }
+
+    .menu-icon {
+      font-size: 5rem;
+      margin-bottom: 25px;
+      display: block;
+      animation: iconFloat 3s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .menu-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: var(--orange);
+      position: relative;
+      z-index: 1;
+    }
+
+    .menu-description {
+      color: var(--light-gray);
+      opacity: 0.9;
+      line-height: 1.7;
+      font-size: 1.05rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+      padding: 18px 40px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 1rem;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      transition: all 0.6s ease;
+      transform: translate(-50%, -50%);
+    }
+
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-primary {
+      background: var(--gradient-light);
+      color: var(--dark-blue);
+      box-shadow: var(--shadow-light);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--orange);
+      border: 2px solid var(--orange);
+    }
+
+    .btn:hover {
+      transform: translateY(-4px) scale(1.05);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 15px 50px rgba(252, 163, 17, 0.4);
+    }
+
+    .btn-secondary:hover {
+      background: var(--orange);
+      color: var(--dark-blue);
+    }
+
+    /* Loading Screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.5s ease;
+    }
+
+    .loading-screen.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .loading-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--orange);
+      margin-bottom: 30px;
+      animation: loadingPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes loadingPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .loading-progress {
+      width: 400px;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .loading-bar {
+      height: 100%;
+      background: var(--gradient-light);
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .loading-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 20px;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-20px); }
+      100% { transform: translateX(20px); }
+    }
+
+    .loading-text {
+      color: var(--light-gray);
+      font-size: 1.1rem;
+      margin-top: 15px;
+      font-weight: 500;
+    }
+
+    /* Game Room */
+    .game-room {
+      display: none;
+      animation: fadeInScale 0.8s ease-out;
+    }
+
+    @keyframes fadeInScale {
+      0% {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .room-code {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--orange);
+      margin: 30px 0;
+      letter-spacing: 8px;
+      text-shadow: 0 0 20px rgba(252, 163, 17, 0.4);
+      animation: codeGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes codeGlow {
+      0% { text-shadow: 0 0 20px rgba(252, 163, 17, 0.4); }
+      100% { text-shadow: 0 0 30px rgba(252, 163, 17, 0.7); }
+    }
+
+    /* Players List */
+    .player-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 25px;
+      margin: 15px 0;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(252, 163, 17, 0.2);
+      animation: playerSlideIn 0.5s ease-out;
+      transition: all 0.3s ease;
+    }
+
+    .player-item:hover {
+      background: rgba(252, 163, 17, 0.1);
+      transform: translateX(5px);
+    }
+
+    @keyframes playerSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .player-name {
+      font-weight: 600;
+      color: var(--white);
+      font-size: 1.1rem;
+    }
+
+    .player-score {
+      font-weight: 800;
+      color: var(--orange);
+      font-size: 1.3rem;
+    }
+
+    /* Game Interface */
+    .game-interface {
+      display: none;
+      animation: gameInterfaceFade 1s ease-out;
+    }
+
+    @keyframes gameInterfaceFade {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .audio-player {
+      text-align: center;
+      margin: 40px 0;
+    }
+
+    .audio-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      margin: 40px 0;
+      flex-wrap: wrap;
+    }
+
+    .play-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--gradient-light);
+      border: none;
+      color: var(--dark-blue);
+      font-size: 2.5rem;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      box-shadow: var(--shadow-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .play-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .play-btn:hover::before {
+      opacity: 1;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 20px 60px rgba(252, 163, 17, 0.4);
+    }
+
+    .play-btn:active {
+      transform: scale(0.95);
+    }
+
+    .timer {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--orange);
+      text-shadow: 0 0 30px rgba(252, 163, 17, 0.5);
+      animation: timerPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes timerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .extend-btn {
+      padding: 15px 30px;
+      background: rgba(252, 163, 17, 0.1);
+      border: 2px solid var(--orange);
+      border-radius: 50px;
+      color: var(--orange);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    .extend-btn:hover {
+      background: var(--orange);
+      color: var(--dark-blue);
+      transform: scale(1.05);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin: 30px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-light);
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 20px;
+      position: relative;
+    }
+
+    /* Guess Input */
+    .guess-input {
+      width: 100%;
+      padding: 20px 30px;
+      font-size: 1.2rem;
+      border: 2px solid rgba(252, 163, 17, 0.3);
+      border-radius: 50px;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--white);
+      margin: 25px 0;
+      transition: all 0.4s ease;
+      font-family: inherit;
+      font-weight: 500;
+    }
+
+    .guess-input:focus {
+      outline: none;
+      border-color: var(--orange);
+      background: rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 30px rgba(252, 163, 17, 0.2);
+      transform: scale(1.01);
+    }
+
+    .guess-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Messages */
+    .messages {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 25px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--border-radius);
+      margin: 25px 0;
+      border: 1px solid rgba(252, 163, 17, 0.1);
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--orange);
+      border-radius: 10px;
+    }
+
+    .message {
+      padding: 15px 20px;
+      margin: 12px 0;
+      border-radius: var(--border-radius);
+      background: rgba(252, 163, 17, 0.1);
+      border-left: 4px solid var(--orange);
+      animation: messageSlide 0.4s ease-out;
+      transition: all 0.3s ease;
+    }
+
+    .message:hover {
+      background: rgba(252, 163, 17, 0.15);
+      transform: translateX(5px);
+    }
+
+    @keyframes messageSlide {
+      0% {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .message.correct {
+      background: rgba(76, 175, 80, 0.2);
+      border-left-color: #4caf50;
+      color: #4caf50;
+    }
+
+    .message.wrong {
+      background: rgba(244, 67, 54, 0.2);
+      border-left-color: #f44336;
+      color: #f44336;
+    }
+
+    .message.system {
+      background: rgba(33, 150, 243, 0.2);
+      border-left-color: #2196f3;
+      color: #2196f3;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .logo {
+        font-size: 2.5rem;
+      }
+      
+      .menu {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .menu-item {
+        padding: 40px 30px;
+      }
+      
+      .menu-icon {
+        font-size: 3.5rem;
+      }
+      
+      .audio-controls {
+        gap: 25px;
+      }
+      
+      .timer {
+        font-size: 2.5rem;
+      }
+      
+      .play-btn {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+      }
+      
+      .loading-progress {
+        width: 300px;
+      }
+      
+      .room-code {
+        font-size: 2rem;
+        letter-spacing: 4px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo {
+        font-size: 2rem;
+      }
+      
+      .subtitle {
+        font-size: 1.1rem;
+      }
+      
+      .menu-item {
+        padding: 30px 20px;
+      }
+      
+      .loading-progress {
+        width: 250px;
+      }
+    }
+
+    /* Utility Classes */
+    .hidden {
+      display: none !important;
+    }
+
+    .fade-out {
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.5s ease;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(252, 163, 17, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--orange);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="bg-wave"></div>
+    <div class="bg-wave"></div>
+    <div class="floating-notes" id="floatingNotes"></div>
+  </div>
+
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-title">🎵 Loading Songs...</div>
+    <div class="loading-progress">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+    <div class="loading-text" id="loadingText">Fetching anime songs...</div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1 class="logo">🎵 AnimeSongGuesser</h1>
+      <p class="subtitle">Test your anime knowledge with friends!</p>
+    </div>
+
+    <!-- Name Section -->
+    <div class="card name-section" id="nameSection">
+      <h2 class="section-title">Choose Your Display Name</h2>
+      <input type="text" class="name-input" id="playerName" placeholder="Enter your name..." maxlength="20">
+      <p style="opacity: 0.7; margin-top: 15px; font-size: 0.95rem;">Leave empty to be called "Anonymous"</p>
+    </div>
+
+    <!-- Main Menu -->
+    <div class="menu" id="mainMenu">
+      <div class="menu-item" onclick="startPracticeMode()">
+        <span class="menu-icon">🎯</span>
+        <h3 class="menu-title">Practice Mode</h3>
+        <p class="menu-description">Practice solo to sharpen your anime music knowledge and improve your guessing skills</p>
+      </div>
+      
+      <div class="menu-item" onclick="createRoom()">
+        <span class="menu-icon">🏠</span>
+        <h3 class="menu-title">Create Room</h3>
+        <p class="menu-description">Start a private room and invite friends to compete in an epic anime music battle</p>
+      </div>
+      
+      <div class="menu-item" onclick="showJoinRoom()">
+        <span class="menu-icon">🚪</span>
+        <h3 class="menu-title">Join Room</h3>
+        <p class="menu-description">Enter a room code to join your friends in an existing anime music quiz session</p>
+      </div>
+    </div>
+
+    <!-- Join Room Section -->
+    <div class="card name-section hidden" id="joinRoomSection">
+      <h2 class="section-title">Join Existing Room</h2>
+      <input type="text" class="name-input" id="roomCodeInput" placeholder="Enter 6-digit room code..." maxlength="6">
+      <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="joinRoom()">
+          <span>🚪</span>
+          Join Room
+        </button>
+        <button class="btn btn-secondary" onclick="backToMenu()">
+          <span>⬅️</span>
+          Back to Menu
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Room -->
+    <div class="game-room" id="gameRoom">
+      <div class="card" style="text-align: center;">
+        <h2 class="section-title">Room Created!</h2>
+        <div class="room-code" id="roomCode">ABCD12</div>
+        <p style="opacity: 0.9; font-size: 1.1rem;">Share this code with friends to invite them to your game</p>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Players in Room</h3>
+        <div id="playersList">
+          <div class="player-item">
+            <span class="player-name">Waiting for players...</span>
+            <span class="player-score">0 pts</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <button class="btn btn-primary" id="startGameBtn" onclick="startGame()">
+          <span>🎮</span>
+          Start Game
+        </button>
+        <button class="btn btn-secondary" onclick="leaveRoom()" style="margin-left: 20px;">
+          <span>🚪</span>
+          Leave Room
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Interface -->
+    <div class="game-interface" id="gameInterface">
+      <div class="card audio-player">
+        <h3 class="section-title">Song <span id="currentSong">1</span> of 10</h3>
+        
+        <div class="audio-controls">
+          <button class="play-btn" id="playBtn" onclick="toggleAudio()">▶️</button>
+          <div class="timer" id="timer">5</div>
+          <button class="extend-btn" onclick="extendTime()">
+            <span>⏰</span>
+            Extend (+5s, -5pts)
+          </button>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+          </div>
+        </div>
+        
+        <audio id="audioPlayer" preload="metadata">
+        </audio>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Make Your Guess</h3>
+        <input type="text" class="guess-input" id="guessInput" placeholder="Song title, anime name, or artist...">
+        <p style="opacity: 0.7; font-size: 0.95rem; text-align: center;">💡 Hint: Any of the three will be accepted as correct!</p>
+        
+        <div class="messages" id="messages">
+          <div class="message system">🎵 Game started! Listen carefully and make your guess...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Live Scoreboard</h3>
+        <div id="gamePlayersList">
+          <div class="player-item">
+            <span class="player-name">Loading players...</span>
+            <span class="player-score">0 pts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game State
+    let gameState = {
+      playerName: '',
+      roomCode: '',
+      isHost: false,
+      players: [],
+      currentSong: 1,
+      totalSongs: 10,
+      timer: 5,
+      isPlaying: false,
+      hasExtended: false,
+      gameMode: '',
+      songs: [],
+      preloadedAudio: new Map(),
+      score: 0
+    };
+
+    // Initialize
+    function init() {
+      createFloatingNotes();
+      setupEventListeners();
+      console.log('🎵 AnimeSongGuesser initialized!');
+    }
+
+    // Create floating musical notes
+    function createFloatingNotes() {
+      const container = document.getElementById('floatingNotes');
+      const notes = ['♪', '♫', '♬', '♩', '♭', '♮', '♯'];
+      
+      for (let i = 0; i < 15; i++) {
+        const note = document.createElement('div');
+        note.className = 'music-note';
+        note.textContent = notes[Math.floor(Math.random() * notes.length)];
+        note.style.left = Math.random() * 100 + '%';
+        note.style.animationDelay = Math.random() * 15 + 's';
+        note.style.animationDuration = (12 + Math.random() * 6) + 's';
+        container.appendChild(note);
+      }
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+      document.getElementById('playerName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') setPlayerName();
+      });
+
+      document.getElementById('roomCodeInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') joinRoom();
+      });
+
+      document.getElementById('guessInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') makeGuess();
+      });
+
+      // Auto-uppercase room code input
+      document.getElementById('roomCodeInput').addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substr(0, 6);
+      });
+    }
+
+    // Enhanced AnimeThemes API integration
+    async function fetchRandomAnimeSongs(count = 10) {
+      try {
+        showLoading('Fetching random anime songs...');
+        updateLoadingProgress(10);
+        
+        // Fetch multiple pages to get variety
+        const responses = await Promise.all([
+          fetch('https://api.animethemes.moe/anime?page[size]=50&include=animethemes.animethemeentries.videos'),
+          fetch('https://api.animethemes.moe/anime?page[number]=2&page[size]=50&include=animethemes.animethemeentries.videos'),
+          fetch('https://api.animethemes.moe/anime?page[number]=3&page[size]=50&include=animethemes.animethemeentries.videos')
+        ]);
+        
+        updateLoadingProgress(30);
+        
+        const allData = await Promise.all(responses.map(r => r.json()));
+        const allAnimes = allData.flatMap(data => data.anime || []);
+        
+        updateLoadingProgress(50);
+        
+        // Filter and select songs
+        const validSongs = [];
+        for (const anime of allAnimes) {
+          if (anime.animethemes && anime.animethemes.length > 0) {
+            for (const theme of anime.animethemes) {
+              if (theme.animethemeentries && theme.animethemeentries.length > 0) {
+                const entry = theme.animethemeentries[0];
+                if (entry.videos && entry.videos.length > 0) {
+                  const video = entry.videos;
+                  if (video.audio && video.audio.link) {
+                    validSongs.push({
+                      title: theme.song ? theme.song.title || 'Unknown Song' : 'Unknown Song',
+                      anime: anime.name || 'Unknown Anime',
+                      artist: theme.song && theme.song.artists ? 
+                        theme.song.artists.map(a => a.name).join(', ') : 'Unknown Artist',
+                      audio: video.audio.link,
+                      type: theme.type || 'OP/ED'
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        updateLoadingProgress(70);
+        
+        // Shuffle and select random songs
+        const shuffled = validSongs.sort(() => Math.random() - 0.5);
+        const selectedSongs = shuffled.slice(0, count);
+        
+        console.log(`📀 Selected ${selectedSongs.length} songs for the game`);
+        return selectedSongs;
+        
+      } catch (error) {
+        console.error('❌ Error fetching songs:', error);
+        // Fallback to demo songs
+        return getDemoSongs();
+      }
+    }
+
+    // Demo songs fallback
+    function getDemoSongs() {
+      return [
+        {
+          title: "Unravel",
+          anime: "Tokyo Ghoul",
+          artist: "TK from Ling tosite sigure",
+          audio: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+          type: "OP"
+        },
+        {
+          title: "Gurenge",
+          anime: "Demon Slayer",
+          artist: "LiSA",
+          audio: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+          type: "OP"
+        },
+        {
+          title: "Cruel Angel's Thesis",
+          anime: "Neon Genesis Evangelion", 
+          artist: "Yoko Takahashi",
+          audio: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+          type: "OP"
+        }
+      ].slice(0, gameState.totalSongs);
+    }
+
+    // Preload audio files
+    async function preloadAudioFiles(songs) {
+      showLoading('Preloading audio files...');
+      gameState.preloadedAudio.clear();
+      
+      const preloadPromises = songs.map(async (song, index) => {
+        try {
+          updateLoadingProgress(70 + (index / songs.length) * 25);
+          updateLoadingText(`Loading audio ${index + 1}/${songs.length}...`);
+          
+          const audio = new Audio();
+          audio.crossOrigin = 'anonymous';
+          audio.preload = 'auto';
+          
+          return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Audio load timeout'));
+            }, 10000);
+            
+            audio.addEventListener('canplaythrough', () => {
+              clearTimeout(timeout);
+              gameState.preloadedAudio.set(index, audio);
+              console.log(`✅ Preloaded: ${song.title}`);
+              resolve();
+            });
+            
+            audio.addEventListener('error', (e) => {
+              clearTimeout(timeout);
+              console.warn(`⚠️ Failed to preload: ${song.title}`);
+              resolve(); // Continue even if one fails
+            });
+            
+            audio.src = song.audio;
+            audio.load();
+          });
+          
+        } catch (error) {
+          console.warn(`⚠️ Error preloading ${song.title}:`, error);
+        }
+      });
+      
+      await Promise.all(preloadPromises);
+      updateLoadingProgress(100);
+      updateLoadingText('Ready to start!');
+      
+      console.log(`🎵 Preloaded ${gameState.preloadedAudio.size}/${songs.length} audio files`);
+    }
+
+    // Loading screen functions
+    function showLoading(message = 'Loading...') {
+      document.getElementById('loadingScreen').classList.add('active');
+      updateLoadingText(message);
+      updateLoadingProgress(0);
+    }
+
+    function hideLoading() {
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.remove('active');
+      }, 500);
+    }
+
+    function updateLoadingProgress(percent) {
+      document.getElementById('loadingBar').style.width = percent + '%';
+    }
+
+    function updateLoadingText(text) {
+      document.getElementById('loadingText').textContent = text;
+    }
+
+    // Set player name
+    function setPlayerName() {
+      const name = document.getElementById('playerName').value.trim();
+      gameState.playerName = name || 'Anonymous';
+      console.log(`👤 Player name set: ${gameState.playerName}`);
+    }
+
+    // Practice Mode
+    async function startPracticeMode() {
+      setPlayerName();
+      gameState.gameMode = 'practice';
+      
+      try {
+        const songs = await fetchRandomAnimeSongs(gameState.totalSongs);
+        await preloadAudioFiles(songs);
+        gameState.songs = songs;
+        
+        hideLoading();
+        showGameInterface();
+        startNewSong();
+        
+      } catch (error) {
+        console.error('❌ Error starting practice mode:', error);
+        hideLoading();
+        alert('Failed to load songs. Please try again.');
+      }
+    }
+
+    // Create Room
+    function createRoom() {
+      setPlayerName();
+      gameState.roomCode = generateRoomCode();
+      gameState.isHost = true;
+      gameState.gameMode = 'multiplayer';
+      gameState.players = [{
+        name: gameState.playerName,
+        score: 0,
+        isHost: true
+      }];
+      
+      showGameRoom();
+      console.log(`🏠 Room created: ${gameState.roomCode}`);
+    }
+
+    // Generate room code
+    function generateRoomCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    // Show join room
+    function showJoinRoom() {
+      setPlayerName();
+      hideSection('mainMenu');
+      showSection('joinRoomSection');
+      document.getElementById('roomCodeInput').focus();
+    }
+
+    // Join Room
+    function joinRoom() {
+      const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+      if (!code || code.length !== 6) {
+        alert('Please enter a valid 6-character room code!');
+        return;
+      }
+      
+      gameState.roomCode = code;
+      gameState.isHost = false;
+      gameState.gameMode = 'multiplayer';
+      gameState.players = [
+        { name: 'Host', score: 0, isHost: true },
+        { name: gameState.playerName, score: 0, isHost: false }
+      ];
+      
+      showGameRoom();
+      console.log(`🚪 Joined room: ${gameState.roomCode}`);
+    }
+
+    // Back to menu
+    function backToMenu() {
+      hideSection('joinRoomSection');
+      showSection('mainMenu');
+    }
+
+    // Show/Hide sections with animation
+    function showSection(sectionId) {
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    function hideSection(sectionId) {
+      document.getElementById(sectionId).classList.add('hidden');
+    }
+
+    // Show game room
+    function showGameRoom() {
+      hideSection('mainMenu');
+      hideSection('joinRoomSection');
+      document.getElementById('gameRoom').style.display = 'block';
+      document.getElementById('roomCode').textContent = gameState.roomCode;
+      updatePlayersList();
+    }
+
+    // Update players list
+    function updatePlayersList() {
+      const container = document.getElementById('playersList');
+      container.innerHTML = '';
+      
+      if (gameState.players.length === 0) {
+        container.innerHTML = '<div class="player-item"><span class="player-name">Waiting for players...</span><span class="player-score">0 pts</span></div>';
+        return;
+      }
+      
+      gameState.players.forEach((player, index) => {
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'player-item';
+        playerDiv.style.animationDelay = (index * 0.1) + 's';
+        playerDiv.innerHTML = `
+          <span class="player-name">${player.name}${player.isHost ? ' 👑' : ''}</span>
+          <span class="player-score">${player.score} pts</span>
+        `;
+        container.appendChild(playerDiv);
+      });
+    }
+
+    // Start Game
+    async function startGame() {
+      if (gameState.players.length < 1) {
+        alert('Need at least 1 player to start!');
+        return;
+      }
+      
+      try {
+        const songs = await fetchRandomAnimeSongs(gameState.totalSongs);
+        await preloadAudioFiles(songs);
+        gameState.songs = songs;
+        
+        hideLoading();
+        showGameInterface();
+        startNewSong();
+        
+      } catch (error) {
+        console.error('❌ Error starting game:', error);
+        hideLoading();
+        alert('Failed to start game. Please try again.');
+      }
+    }
+
+    // Leave Room
+    function leaveRoom() {
+      resetGameState();
+      document.getElementById('gameRoom').style.display = 'none';
+      showSection('mainMenu');
+      console.log('🚪 Left room');
+    }
+
+    // Reset game state
+    function resetGameState() {
+      gameState = {
+        playerName: gameState.playerName,
+        roomCode: '',
+        isHost: false,
+        players: [],
+        currentSong: 1,
+        totalSongs: 10,
+        timer: 5,
+        isPlaying: false,
+        hasExtended: false,
+        gameMode: '',
+        songs: [],
+        preloadedAudio: new Map(),
+        score: 0
+      };
+    }
+
+    // Show game interface
+    function showGameInterface() {
+      document.getElementById('gameRoom').style.display = 'none';
+      document.getElementById('gameInterface').style.display = 'block';
+      document.getElementById('currentSong').textContent = gameState.currentSong;
+      updateGamePlayersList();
+    }
+
+    // Update game players list
+    function updateGamePlayersList() {
+      const container = document.getElementById('gamePlayersList');
+      container.innerHTML = '';
+      
+      if (gameState.gameMode === 'practice') {
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'player-item';
+        playerDiv.innerHTML = `
+          <span class="player-name">${gameState.playerName}</span>
+          <span class="player-score">${gameState.score} pts</span>
+        `;
+        container.appendChild(playerDiv);
+      } else {
+        gameState.players.forEach((player, index) => {
+          const playerDiv = document.createElement('div');
+          playerDiv.className = 'player-item';
+          playerDiv.style.animationDelay = (index * 0.1) + 's';
+          playerDiv.innerHTML = `
+            <span class="player-name">${player.name}</span>
+            <span class="player-score">${player.score} pts</span>
+          `;
+          container.appendChild(playerDiv);
+        });
+      }
+    }
+
+    // Start new song
+    function startNewSong() {
+      if (gameState.currentSong > gameState.totalSongs) {
+        endGame();
+        return;
+      }
+      
+      gameState.timer = 5;
+      gameState.hasExtended = false;
+      gameState.isPlaying = false;
+      
+      const songIndex = gameState.currentSong - 1;
+      const song = gameState.songs[songIndex];
+      const preloadedAudio = gameState.preloadedAudio.get(songIndex);
+      
+      if (preloadedAudio) {
+        document.getElementById('audioPlayer').src = preloadedAudio.src;
+      } else {
+        document.getElementById('audioPlayer').src = song.audio;
+      }
+      
+      document.getElementById('timer').textContent = gameState.timer;
+      document.getElementById('progressBar').style.width = '0%';
+      document.getElementById('playBtn').textContent = '▶️';
+      
+      addMessage(`🎵 Song ${gameState.currentSong}: Ready to play! (${song.type})`, 'system');
+      console.log(`🎵 Starting song ${gameState.currentSong}: ${song.title} from ${song.anime}`);
+    }
+
+    // Toggle audio
+    function toggleAudio() {
+      const audio = document.getElementById('audioPlayer');
+      const playBtn = document.getElementById('playBtn');
+      
+      if (gameState.isPlaying) {
+        audio.pause();
+        gameState.isPlaying = false;
+        playBtn.textContent = '▶️';
+        console.log('⏸️ Audio paused');
+      } else {
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        
+        if (playPromise) {
+          playPromise.then(() => {
+            gameState.isPlaying = true;
+            playBtn.textContent = '⏸️';
+            startTimer();
+            console.log('▶️ Audio playing');
+          }).catch(error => {
+            console.error('❌ Error playing audio:', error);
+            addMessage('❌ Failed to play audio. Try another song.', 'system');
+          });
+        }
+      }
+    }
+
+    // Start timer
+    function startTimer() {
+      const timerInterval = setInterval(() => {
+        gameState.timer--;
+        document.getElementById('timer').textContent = gameState.timer;
+        
+        const progress = ((5 - gameState.timer) / 5) * 100;
+        document.getElementById('progressBar').style.width = progress + '%';
+        
+        if (gameState.timer <= 0 || !gameState.isPlaying) {
+          clearInterval(timerInterval);
+          if (gameState.timer <= 0) {
+            timeUp();
+          }
+        }
+      }, 1000);
+    }
+
+    // Extend time
+    function extendTime() {
+      if (gameState.hasExtended || !gameState.isPlaying) {
+        return;
+      }
+      
+      gameState.timer += 5;
+      gameState.hasExtended = true;
+      
+      // Deduct 5 points
+      gameState.score = Math.max(0, gameState.score - 5);
+      updateGamePlayersList();
+      
+      addMessage('⏰ Time extended! (-5 points)', 'system');
+      console.log('⏰ Time extended, -5 points');
+    }
+
+    // Make guess
+    function makeGuess() {
+      const guess = document.getElementById('guessInput').value.trim();
+      if (!guess) return;
+      
+      const currentSongData = gameState.songs[gameState.currentSong - 1];
+      const isCorrect = checkGuess(guess, currentSongData);
+      
+      if (isCorrect) {
+        const points = gameState.hasExtended ? 5 : 10;
+        gameState.score += points;
+        
+        addMessage(`✅ ${gameState.playerName}: "${guess}" - Correct! (+${points} points)`, 'correct');
+        gameState.isPlaying = false;
+        document.getElementById('audioPlayer').pause();
+        
+        updateGamePlayersList();
+        
+        setTimeout(() => {
+          nextSong();
+        }, 2000);
+      } else {
+        addMessage(`❌ ${gameState.playerName}: "${guess}" - Try again!`, 'wrong');
+      }
+      
+      document.getElementById('guessInput').value = '';
+    }
+
+    // Enhanced guess checking with fuzzy matching
+    function checkGuess(guess, songData) {
+      const targets = [
+        songData.title,
+        songData.anime,
+        songData.artist,
+        // Also check individual artist names if multiple
+        ...(songData.artist.includes(',') ? songData.artist.split(',').map(a => a.trim()) : [])
+      ];
+      
+      const guessLower = guess.toLowerCase().trim();
+      
+      return targets.some(target => {
+        const targetLower = target.toLowerCase().trim();
+        return fuzzyMatch(guessLower, targetLower);
+      });
+    }
+
+    // Fuzzy string matching with improved algorithm
+    function fuzzyMatch(str1, str2) {
+      // Exact match
+      if (str1 === str2) return true;
+      
+      // Contains match (either direction)
+      if (str1.includes(str2) || str2.includes(str1)) return true;
+      
+      // Remove common words that might cause issues
+      const removeWords = ['the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'on', 'at'];
+      const clean1 = str1.split(' ').filter(w => !removeWords.includes(w)).join(' ');
+      const clean2 = str2.split(' ').filter(w => !removeWords.includes(w)).join(' ');
+      
+      if (clean1 === clean2) return true;
+      
+      // Levenshtein distance with higher tolerance for Japanese names
+      const distance = levenshteinDistance(str1, str2);
+      const maxLength = Math.max(str1.length, str2.length);
+      const similarity = 1 - (distance / maxLength);
+      
+      // More lenient for shorter strings (common for Japanese names)
+      const threshold = maxLength < 10 ? 0.7 : 0.8;
+      
+      return similarity >= threshold;
+    }
+
+    // Levenshtein distance calculation
+    function levenshteinDistance(str1, str2) {
+      const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+      
+      for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+      for (let j = 0; j <= str2.length; j++) matrix[j] = j;
+      
+      for (let j = 1; j <= str2.length; j++) {
+        for (let i = 1; i <= str1.length; i++) {
+          const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+          matrix[j][i] = Math.min(
+            matrix[j][i - 1] + 1,     // deletion
+            matrix[j - 1][i] + 1,     // insertion
+            matrix[j - 1][i - 1] + indicator // substitution
+          );
+        }
+      }
+      
+      return matrix[str2.length][str1.length];
+    }
+
+    // Time up
+    function timeUp() {
+      gameState.isPlaying = false;
+      document.getElementById('audioPlayer').pause();
+      
+      const currentSongData = gameState.songs[gameState.currentSong - 1];
+      addMessage(`⏰ Time's up! The song was "${currentSongData.title}" from ${currentSongData.anime} by ${currentSongData.artist}`, 'system');
+      
+      setTimeout(() => {
+        nextSong();
+      }, 3000);
+    }
+
+    // Next song
+    function nextSong() {
+      gameState.currentSong++;
+      document.getElementById('currentSong').textContent = gameState.currentSong;
+      startNewSong();
+    }
+
+    // Add message with enhanced styling
+    function addMessage(text, type = '') {
+      const messagesContainer = document.getElementById('messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+      messageDiv.textContent = text;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // Auto-remove old messages to prevent overflow
+      const messages = messagesContainer.children;
+      if (messages.length > 20) {
+        messages[0].remove();
+      }
+    }
+
+    // End game
+    function endGame() {
+      const finalScore = gameState.score;
+      const accuracy = (finalScore / (gameState.totalSongs * 10)) * 100;
+      
+      addMessage(`🎉 Game Over! Final Score: ${finalScore}/100 points (${accuracy.toFixed(1)}% accuracy)`, 'system');
+      
+      // Show final stats
+      setTimeout(() => {
+        const playAgain = confirm(`🎵 Game Complete!\n\nFinal Score: ${finalScore} points\nAccuracy: ${accuracy.toFixed(1)}%\n\nWould you like to play again?`);
+        if (playAgain) {
+          location.reload();
+        } else {
+          backToMenu();
+          document.getElementById('gameInterface').style.display = 'none';
+          showSection('mainMenu');
+        }
+      }, 3000);
+      
+      console.log(`🏁 Game ended. Final score: ${finalScore} points`);
+    }
+
+    // Initialize app
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
